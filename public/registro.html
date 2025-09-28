@@ -3,15 +3,118 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Registro - Encuentrame</title>
+  <title>Registro - Encuéntrame</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <!-- Fuente moderna -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #e0f7fa, #ffffff);
+      margin: 0;
+      padding: 0;
+    }
+
+    main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 3rem 1rem;
+    }
+
+    .registro-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .registro-img {
+      background: url("css/img/mascota-registro.jpg") no-repeat center center/cover;
+    }
+
+    .registro-form {
+      padding: 2.5rem;
+    }
+
+    .registro-form h2 {
+      text-align: center;
+      color: #0277bd;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+
+    .registro-form label {
+      display: block;
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+      color: #01579b;
+    }
+
+    .registro-form input {
+      width: 100%;
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+      border: 1px solid #b3e5fc;
+      border-radius: 10px;
+      background: #f9f9f9;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .registro-form input:focus {
+      border-color: #0288d1;
+      outline: none;
+      background: #ffffff;
+      box-shadow: 0 0 6px rgba(2, 136, 209, 0.3);
+    }
+
+    .registro-form button {
+      width: 100%;
+      padding: 0.9rem;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4fc3f7, #0288d1);
+      color: #ffffff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    .registro-form button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(2, 136, 209, 0.3);
+    }
+
+    #mensaje {
+      text-align: center;
+      margin-top: 1rem;
+      font-weight: 500;
+      color: #d32f2f;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .registro-container {
+        grid-template-columns: 1fr;
+      }
+      .registro-img {
+        height: 180px;
+      }
+    }
+  </style>
 </head>
 <body>
 
   <!-- BARRA DE NAVEGACIÓN -->
   <header class="navbar">
     <img src="css/img/4.png" alt="Logo Encuéntrame" class="logo">
-    <h1 class="title">Encuentrame</h1>
+    <h1 class="title">Encuéntrame</h1>
     <nav class="menu">
       <button class="menu-btn">☰</button>
       <ul class="menu-links">
@@ -27,41 +130,43 @@
 
   <!-- CONTENIDO PRINCIPAL -->
   <main>
-    <h2>Registro de Usuario</h2>
+    <div class="registro-container">
+      <!-- Imagen -->
+      <div class="registro-img"></div>
 
-    <form id="registroForm">
-      <label for="nombre">Nombre completo:</label>
-      <input type="text" id="nombre" required minlength="3">
+      <!-- Formulario -->
+      <div class="registro-form">
+        <h2>Registro de Usuario</h2>
+        <form id="registroForm">
+          <label for="nombre">Nombre completo:</label>
+          <input type="text" id="nombre" required minlength="3">
 
-      <label for="email">Email:</label>
-      <input type="email" id="email" required>
+          <label for="email">Email:</label>
+          <input type="email" id="email" required>
 
-      <label for="password">Contraseña (mín. 6 caracteres):</label>
-      <input type="password" id="password" required minlength="6">
+          <label for="password">Contraseña (mín. 6 caracteres):</label>
+          <input type="password" id="password" required minlength="6">
 
-      <label for="telefono">Teléfono (opcional):</label>
-      <input type="text" id="telefono">
+          <label for="telefono">Teléfono (opcional):</label>
+          <input type="text" id="telefono">
 
-      <label for="direccion">Dirección (opcional):</label>
-      <input type="text" id="direccion">
+          <label for="direccion">Dirección (opcional):</label>
+          <input type="text" id="direccion">
 
-      <button type="submit">Registrarse</button>
-    </form>
-
-    <p id="mensaje"></p>
+          <button type="submit">Registrarse</button>
+        </form>
+        <p id="mensaje"></p>
+      </div>
+    </div>
   </main>
 
-  <!-- SCRIPTS -->
+  <!-- Scripts originales -->
   <script>
-    // Si ya está logueado, redirigir al perfil
     const token = localStorage.getItem('token');
     if (token) {
       window.location.href = 'perfil.html';
     }
-  </script>
 
-  <script>
-    // Manejar el envío del formulario
     document.getElementById('registroForm').addEventListener('submit', async function(e) {
       e.preventDefault();
 
@@ -71,7 +176,6 @@
       const telefono = document.getElementById('telefono').value.trim();
       const direccion = document.getElementById('direccion').value.trim();
 
-      // Validaciones
       if (nombre.length < 3) {
         document.getElementById('mensaje').textContent = 'El nombre debe tener al menos 3 caracteres.';
         return;
@@ -85,9 +189,7 @@
       try {
         const response = await fetch('http://localhost:3000/api/registro', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ nombre, email, password, telefono, direccion })
         });
 
@@ -95,10 +197,7 @@
 
         if (data.mensaje) {
           document.getElementById('mensaje').textContent = data.mensaje;
-          // Opcional: redirigir al login después de registrarse
-          setTimeout(() => {
-            window.location.href = 'login.html';
-          }, 1500);
+          setTimeout(() => { window.location.href = 'login.html'; }, 1500);
         } else if (data.error) {
           document.getElementById('mensaje').textContent = data.error;
         }
@@ -107,14 +206,10 @@
         document.getElementById('mensaje').textContent = 'No se pudo conectar al servidor.';
       }
     });
-  </script>
 
-  <script>
-    // Menú responsive
     document.querySelector('.menu-btn')?.addEventListener('click', () => {
       document.querySelector('.menu-links')?.classList.toggle('show');
     });
   </script>
-
 </body>
 </html>

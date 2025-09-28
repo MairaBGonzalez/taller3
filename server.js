@@ -1,6 +1,6 @@
 // server.js
 const express = require('express');
-const { Pool } = require('pg');
+const mariadb = require('mariadb');
 require('dotenv').config();
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
@@ -10,18 +10,20 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Para soportar imágenes grandes en Base64
 
-// Conexión a Supabase (PostgreSQL)
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+// Conexión a MariaDB (usando los datos del profe)
+const pool = mariadb.createPool({
+  host: process.env.DB_HOST,     // Ej: 192.168.1.50
+  port: process.env.DB_PORT || 3306,
+  user: process.env.DB_USER,     // Tu usuario asignado
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME, // Ej: encuentrame_db
+  connectionLimit: 5
 });
 
 // =========================
-// 🔐 Autenticación: JWT
+// 🔐 Autenticación JWT
 // =========================
 
 function authMiddleware(req, res, next) {
@@ -33,7 +35,7 @@ function authMiddleware(req, res, next) {
     req.user = verified;
     next();
   } catch (error) {
-    res.status(400).json({ error: 'Token inválido' });
+    res.status(400).json({ error: 'Token inválido o expirado.' });
   }
 }
 
@@ -52,19 +54,20 @@ app.post('/api/registro', async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const result = await pool.query(
-      `INSERT INTO usuarios (nombre, email, password, telefono, direccion)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, nombre, email`,
+    const conn = await pool.getConnection();
+    const result = await conn.query(
+      `INSERT INTO usuarios (nombre, email, password, telefono, direccion) 
+       VALUES (?, ?, ?, ?, ?)`,
       [nombre, email, hashedPassword, telefono, direccion]
     );
+    conn.release();
 
-    res.json({ mensaje: 'Usuario registrado correctamente', usuario: result.rows[0] });
+    res.json({ mensaje: 'Usuario registrado correctamente' });
   } catch (error) {
-    if (error.code === '23505') {
+    if (error.sqlMessage && error.sqlMessage.includes('Duplicate entry')) {
       return res.status(400).json({ error: 'El email ya está registrado' });
     }
-    console.error(error);
+    console.error('Error en registro:', error);
     res.status(500).json({ error: 'Error al registrar el usuario' });
   }
 });
@@ -78,8 +81,12 @@ app.post('/api/login', async (req, res) => {
   }
 
   try {
-    const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
-    const usuario = result.rows[0];
+    const conn = await pool.getConnection();
+    const [usuario] = await conn.query(
+      'SELECT * FROM usuarios WHERE email = ?',
+      [email]
+    );
+    conn.release();
 
     if (!usuario) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -106,7 +113,7 @@ app.post('/api/login', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error en login:', error);
     res.status(500).json({ error: 'Error en el servidor' });
   }
 });
@@ -114,11 +121,18 @@ app.post('/api/login', async (req, res) => {
 // Perfil del usuario
 app.get('/api/perfil', authMiddleware, async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT id, nombre, email, telefono, direccion, creado_en FROM usuarios WHERE id = $1',
+    const conn = await pool.getConnection();
+    const [usuario] = await conn.query(
+      'SELECT id, nombre, email, telefono, direccion FROM usuarios WHERE id = ?',
       [req.user.id]
     );
-    res.json(result.rows[0]);
+    conn.release();
+
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    res.json(usuario);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener el perfil' });
   }
@@ -133,70 +147,70 @@ app.post('/api/mascotas', authMiddleware, async (req, res) => {
   const { nombre, tipo, raza, color_principal, edad_aproximada, descripcion, foto_url, estado, ubicacion_ultima } = req.body;
 
   try {
-    const result = await pool.query(
+    const conn = await pool.getConnection();
+    await conn.query(
       `INSERT INTO mascotas 
        (usuario_id, nombre, tipo, raza, color_principal, edad_aproximada, descripcion, foto_url, estado, ubicacion_ultima)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       RETURNING *`,
-      [req.user.id, nombre, tipo, color_principal, edad_aproximada, descripcion, foto_url, estado, ubicacion_ultima, raza]
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [req.user.id, nombre, tipo, raza, color_principal, edad_aproximada, descripcion, foto_url, estado, ubicacion_ultima]
     );
+    conn.release();
 
-    res.json({ mensaje: 'Mascota publicada correctamente', mascota: result.rows[0] });
+    res.json({ mensaje: 'Mascota publicada correctamente' });
   } catch (error) {
-    console.error(error);
+    console.error('Error al guardar mascota:', error);
     res.status(500).json({ error: 'Error al guardar la mascota' });
   }
 });
 
-// Listar mascotas (con filtros)
+// Listar todas las mascotas
 app.get('/api/mascotas', async (req, res) => {
   let { tipo, estado, raza, color_principal, ubicacion_ultima } = req.query;
-  let query = `SELECT * FROM mascotas WHERE 1=1`;
-  const params = [];
+  let query = 'SELECT * FROM mascotas WHERE 1=1';
+  let params = [];
   let paramIndex = 1;
 
   if (tipo) {
-    query += ` AND tipo = $${paramIndex}`;
+    query += ` AND tipo = ?`;
     params.push(tipo);
-    paramIndex++;
   }
   if (estado) {
-    query += ` AND estado = $${paramIndex}`;
+    query += ` AND estado = ?`;
     params.push(estado);
-    paramIndex++;
   }
   if (raza) {
-    query += ` AND raza ILIKE $${paramIndex}`;
+    query += ` AND raza LIKE ?`;
     params.push(`%${raza}%`);
-    paramIndex++;
   }
   if (color_principal) {
-    query += ` AND color_principal ILIKE $${paramIndex}`;
+    query += ` AND color_principal LIKE ?`;
     params.push(`%${color_principal}%`);
-    paramIndex++;
   }
   if (ubicacion_ultima) {
-    query += ` AND ubicacion_ultima ILIKE $${paramIndex}`;
+    query += ` AND ubicacion_ultima LIKE ?`;
     params.push(`%${ubicacion_ultima}%`);
-    paramIndex++;
   }
 
   try {
-    const result = await pool.query(query, params);
-    res.json(result.rows);
+    const conn = await pool.getConnection();
+    const mascotas = await conn.query(query, params);
+    conn.release();
+    res.json(mascotas);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener mascotas' });
   }
 });
 
-// Mascotas del usuario
+// Mascotas del usuario logueado
 app.get('/api/mascotas/usuario', authMiddleware, async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT * FROM mascotas WHERE usuario_id = $1 ORDER BY creado_en DESC',
+    const conn = await pool.getConnection();
+    const mascotas = await conn.query(
+      'SELECT * FROM mascotas WHERE usuario_id = ? ORDER BY creado_en DESC',
       [req.user.id]
     );
-    res.json(result.rows);
+    conn.release();
+    res.json(mascotas);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener tus mascotas' });
   }
@@ -205,14 +219,6 @@ app.get('/api/mascotas/usuario', authMiddleware, async (req, res) => {
 // =========================
 // 🚀 Iniciar servidor
 // =========================
-app.get('/api/prueba', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT NOW()');
-    res.json({ mensaje: "Conexión exitosa", fecha: result.rows[0].now });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
