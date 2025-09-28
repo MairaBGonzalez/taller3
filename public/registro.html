@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registro - Encuentrame</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- BARRA DE NAVEGACIÓN -->
+  <header class="navbar">
+    <img src="css/img/4.png" alt="Logo Encuéntrame" class="logo">
+    <h1 class="title">Encuentrame</h1>
+    <nav class="menu">
+      <button class="menu-btn">☰</button>
+      <ul class="menu-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="login.html">Iniciar Sesión</a></li>
+        <li><a href="registro.html">Registrarse</a></li>
+        <li><a href="agregar.html">Agregar Mascota</a></li>
+        <li><a href="filtrar.html">Filtrar Mascotas</a></li>
+        <li><a href="chatbot.html">ChatBot IA</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main>
+    <h2>Registro de Usuario</h2>
+
+    <form id="registroForm">
+      <label for="nombre">Nombre completo:</label>
+      <input type="text" id="nombre" required minlength="3">
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" required>
+
+      <label for="password">Contraseña (mín. 6 caracteres):</label>
+      <input type="password" id="password" required minlength="6">
+
+      <label for="telefono">Teléfono (opcional):</label>
+      <input type="text" id="telefono">
+
+      <label for="direccion">Dirección (opcional):</label>
+      <input type="text" id="direccion">
+
+      <button type="submit">Registrarse</button>
+    </form>
+
+    <p id="mensaje"></p>
+  </main>
+
+  <!-- SCRIPTS -->
+  <script>
+    // Si ya está logueado, redirigir al perfil
+    const token = localStorage.getItem('token');
+    if (token) {
+      window.location.href = 'perfil.html';
+    }
+  </script>
+
+  <script>
+    // Manejar el envío del formulario
+    document.getElementById('registroForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const nombre = document.getElementById('nombre').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const telefono = document.getElementById('telefono').value.trim();
+      const direccion = document.getElementById('direccion').value.trim();
+
+      // Validaciones
+      if (nombre.length < 3) {
+        document.getElementById('mensaje').textContent = 'El nombre debe tener al menos 3 caracteres.';
+        return;
+      }
+
+      if (password.length < 6) {
+        document.getElementById('mensaje').textContent = 'La contraseña debe tener al menos 6 caracteres.';
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:3000/api/registro', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ nombre, email, password, telefono, direccion })
+        });
+
+        const data = await response.json();
+
+        if (data.mensaje) {
+          document.getElementById('mensaje').textContent = data.mensaje;
+          // Opcional: redirigir al login después de registrarse
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 1500);
+        } else if (data.error) {
+          document.getElementById('mensaje').textContent = data.error;
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('mensaje').textContent = 'No se pudo conectar al servidor.';
+      }
+    });
+  </script>
+
+  <script>
+    // Menú responsive
+    document.querySelector('.menu-btn')?.addEventListener('click', () => {
+      document.querySelector('.menu-links')?.classList.toggle('show');
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Encuentrame - Tu app para mascotas perdidas</title>
+  <style>
+    /* Reset básico */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      margin-bottom: 20px;
+      border-radius: 50%;
+      background: white;
+      padding: 10px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    p {
+      font-size: 1.1rem;
+      margin-bottom: 40px;
+      max-width: 500px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 15px 30px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      font-weight: bold;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    .btn-login {
+      background: white;
+      color: #667eea;
+    }
+
+    .btn-register {
+      background: transparent;
+      color: white;
+      border: 2px solid white;
+    }
+
+    footer {
+      margin-top: 60px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Logo -->
+  <img src="css/img/4.png" alt="Logo Encuéntrame" class="logo">
+
+  <!-- Título -->
+  <h1>Encuentrame</h1>
+  <p>La app que te ayuda a encontrar a tu mascota perdida o reportar una encontrada</p>
+
+  <!-- Botones principales -->
+  <div class="buttons">
+    <a href="login.html"><button class="btn btn-login">Iniciar Sesión</button></a>
+    <a href="registro.html"><button class="btn btn-register">Registrarse</button></a>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    &copy; 2025 Encuentrame. Todos los derechos reservados.
+  </footer>
+
+</body>
+</html>

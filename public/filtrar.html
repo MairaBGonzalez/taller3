@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Filtrar Mascotas - Encuentrame</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .filters {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .filters label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+
+    .filters input,
+    .filters select,
+    .filters button {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .mascotas-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .mascota-card {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .mascota-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .mascota-info {
+      padding: 15px;
+    }
+
+    .mascota-info h3 {
+      margin-bottom: 5px;
+      color: #4a90e2;
+    }
+
+    .estado {
+      display: inline-block;
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: white;
+      border-radius: 4px;
+      background: #e74c3c;
+    }
+
+    .estado.encontrada {
+      background: #27ae60;
+    }
+
+    .no-results {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA DE NAVEGACIÓN -->
+  <header class="navbar">
+    <img src="css/img/4.png" alt="Logo Encuéntrame" class="logo">
+    <h1 class="title">Encuentrame</h1>
+    <nav class="menu">
+      <button class="menu-btn">☰</button>
+      <ul class="menu-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="perfil.html">Mi Perfil</a></li>
+        <li><a href="agregar.html">Agregar Mascota</a></li>
+        <li><a href="filtrar.html">Filtrar Mascotas</a></li>
+        <li><a href="chatbot.html">ChatBot IA</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main>
+    <h2>Buscar Mascotas</h2>
+    <p>Filtra por tipo, estado, ubicación y más para encontrar mascotas perdidas o encontradas.</p>
+
+    <!-- Formulario de filtros -->
+    <div class="filters">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div>
+          <label for="tipo">Tipo:</label>
+          <select id="tipo">
+            <option value="">Todos</option>
+            <option value="perro">Perro</option>
+            <option value="gato">Gato</option>
+            <option value="ave">Ave</option>
+            <option value="roedor">Roedor</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label for="estado">Estado:</label>
+          <select id="estado">
+            <option value="">Todos</option>
+            <option value="perdida">Perdida</option>
+            <option value="encontrada">Encontrada</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div>
+          <label for="raza">Raza:</label>
+          <input type="text" id="raza" placeholder="Ej: Labrador">
+        </div>
+        <div>
+          <label for="color_principal">Color:</label>
+          <input type="text" id="color_principal" placeholder="Ej: marrón">
+        </div>
+      </div>
+
+      <div>
+        <label for="ubicacion_ultima">Ubicación:</label>
+        <input type="text" id="ubicacion_ultima" placeholder="Ej: Centro, Córdoba">
+      </div>
+
+      <button id="buscarBtn">Buscar Mascotas</button>
+    </div>
+
+    <!-- Lista de resultados -->
+    <div id="resultados">
+      <p class="no-results">Usa los filtros para buscar mascotas.</p>
+    </div>
+  </main>
+
+  <!-- SCRIPTS -->
+  <script>
+    // Menú responsive
+    document.querySelector('.menu-btn')?.addEventListener('click', () => {
+      document.querySelector('.menu-links')?.classList.toggle('show');
+    });
+  </script>
+
+  <script>
+    const buscarBtn = document.getElementById('buscarBtn');
+    const resultadosDiv = document.getElementById('resultados');
+
+    async function buscarMascotas() {
+      const filters = {
+        tipo: document.getElementById('tipo').value,
+        estado: document.getElementById('estado').value,
+        raza: document.getElementById('raza').value.trim(),
+        color_principal: document.getElementById('color_principal').value.trim(),
+        ubicacion_ultima: document.getElementById('ubicacion_ultima').value.trim()
+      };
+
+      try {
+        let url = 'http://localhost:3000/api/mascotas?';
+        const params = new URLSearchParams();
+        for (const [key, value] of Object.entries(filters)) {
+          if (value) params.append(key, value);
+        }
+
+        const response = await fetch(url + params);
+        const mascotas = await response.json();
+
+        mostrarResultados(mascotas);
+      } catch (error) {
+        console.error('Error:', error);
+        resultadosDiv.innerHTML = '<p>Error al cargar las mascotas.</p>';
+      }
+    }
+
+    function mostrarResultados(mascotas) {
+      if (!mascotas || mascotas.length === 0) {
+        resultadosDiv.innerHTML = '<p class="no-results">No se encontraron mascotas con esos filtros.</p>';
+        return;
+      }
+
+      resultadosDiv.innerHTML = `
+        <div class="mascotas-list">
+          ${mascotas.map(m => `
+            <div class="mascota-card">
+              <img src="${m.foto_url || 'https://placehold.co/300x200?text=Sin+Foto'}" alt="${m.nombre}" class="mascota-img">
+              <div class="mascota-info">
+                <h3>${m.nombre}</h3>
+                <p><strong>Tipo:</strong> ${m.tipo}</p>
+                <p><strong>Raza:</strong> ${m.raza || 'No especificada'}</p>
+                <p><strong>Ubicación:</strong> ${m.ubicacion_ultima}</p>
+                <p><strong>Estado:</strong> <span class="estado ${m.estado}">${m.estado === 'perdida' ? 'Perdida' : 'Encontrada'}</span></p>
+                <p>${m.descripcion || ''}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // Evento al hacer clic en "Buscar"
+    buscarBtn.addEventListener('click', buscarMascotas);
+
+    // También buscar al presionar Enter en cualquier input
+    document.querySelectorAll('.filters input, .filters select').forEach(input => {
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') buscarMascotas();
+      });
+    });
+
+    // Buscar todas las mascotas al cargar la página (sin filtros)
+    buscarMascotas();
+  </script>
+
+</body>
+</html>

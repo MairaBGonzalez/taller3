@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Iniciar Sesión - Encuéntrame</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- BARRA DE NAVEGACIÓN -->
+  <header class="navbar">
+    <img src="css/img/4.png" alt="Logo Encuéntrame" class="logo">
+    <h1 class="title">Encuentrame</h1>
+    <nav class="menu">
+      <button class="menu-btn">☰</button>
+      <ul class="menu-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="login.html">Iniciar Sesión</a></li>
+        <li><a href="registro.html">Registrarse</a></li>
+        <li><a href="agregar.html">Agregar Mascota</a></li>
+        <li><a href="filtrar.html">Filtrar Mascotas</a></li>
+        <li><a href="chatbot.html">ChatBot IA</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main>
+    <h2>Iniciar Sesión</h2>
+
+    <form id="loginForm">
+      <label>Email:</label><br>
+      <input type="email" id="email" required><br><br>
+
+      <label>Contraseña:</label><br>
+      <input type="password" id="password" required><br><br>
+
+      <button type="submit">Iniciar sesión</button>
+    </form>
+
+    <p id="mensaje"></p>
+  </main>
+
+  <!-- SCRIPTS -->
+  <script>
+  // Si ya está logueado, redirigir al perfil
+  const token = localStorage.getItem('token');
+  if (token) {
+    window.location.href = 'perfil.html';
+  }
+</script>
+
+<script>
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const mensaje = document.getElementById('mensaje');
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    // Validación básica
+    if (!email || !password) {
+      mensaje.textContent = 'Por favor, completa todos los campos.';
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      // Verificamos si la respuesta es JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Respuesta del servidor no es JSON');
+      }
+
+      const data = await response.json();
+
+      console.log('Respuesta del servidor:', data); // 🔍 Para depurar
+
+      if (data.token) {
+        // Guardamos token y usuario
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('usuario', JSON.stringify(data.usuario));
+        mensaje.textContent = 'Iniciando sesión...';
+        setTimeout(() => {
+          window.location.href = 'perfil.html';
+        }, 1000);
+      } else {
+        mensaje.textContent = data.error || 'Error al iniciar sesión';
+      }
+    } catch (error) {
+      console.error('Error en el login:', error);
+      mensaje.textContent = 'No se pudo conectar al servidor. Revisa tu conexión o intenta más tarde.';
+    }
+  });
+</script>
+
+  <script>
+    // Menú responsive
+    document.querySelector('.menu-btn')?.addEventListener('click', () => {
+      document.querySelector('.menu-links')?.classList.toggle('show');
+    });
+  </script>
+
+</body>
+</html>

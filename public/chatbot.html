@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ChatBot IA - Encuéntrame</title>
+  <link rel="stylesheet" href="css/styles.css"/>
+</head>
+<body>
+  <header class="navbar">
+    <img src="css/img/4.png" alt="Logo Encuéntrame" class="logo">
+    <h1 class="title">Encuentrame</h1>
+    <nav class="menu">
+      <button class="menu-btn">☰</button>
+      <ul class="menu-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="perfil.html">Mi Perfil</a></li>
+        <li><a href="agregar.html">Agregar Mascota</a></li>
+        <li><a href="filtrar.html">Filtrar Mascotas</a></li>
+        <li><a href="chatbot.html">ChatBot IA</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="contenido">
+    <h2>Asistente Inteligente</h2>
+    <p>Escríbenos tus dudas o cuéntanos qué mascota perdiste y te ayudaremos.</p>
+    <!-- Aquí se integrará el chat con IA -->
+  </main>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
+
+<script>
+  document.querySelector('.menu-btn')?.addEventListener('click', () => {
+    document.querySelector('.menu-links')?.classList.toggle('show');
+  });
+</script>

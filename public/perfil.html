@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mi Perfil - Encuentrame</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* (tu CSS queda igual) */
+  </style>
+</head>
+<body>
+
+  <!-- BARRA DE NAVEGACIÓN -->
+  <header class="navbar">
+    <img src="css/img/4.png" alt="Logo Encuéntrame" class="logo">
+    <h1 class="title">Encuentrame</h1>
+    <nav class="menu">
+      <button class="menu-btn">☰</button>
+      <ul class="menu-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="perfil.html">Mi Perfil</a></li>
+        <li><a href="agregar.html">Agregar Mascota</a></li>
+        <li><a href="filtrar.html">Filtrar Mascotas</a></li>
+        <li><a href="chatbot.html">ChatBot IA</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="profile-container" id="contenido">
+    <p>Cargando perfil...</p>
+  </main>
+
+  <!-- SCRIPTS -->
+  <script>
+    // 🔍 Depuración: Verificar token
+    const token = localStorage.getItem('token');
+    console.log('🔍 Token guardado en localStorage:', token);
+
+    const contenido = document.getElementById('contenido');
+
+    if (!token) {
+      console.log('❌ No hay token. Redirigiendo...');
+      contenido.innerHTML = `
+        <div class="access-denied">
+          <h2>Acceso denegado</h2>
+          <p>Debes iniciar sesión para ver tu perfil.</p>
+          <a href="login.html">Ir al inicio de sesión</a>
+        </div>
+      `;
+      document.querySelector('a[href="perfil.html"]').style.display = 'none';
+      exit;
+    }
+
+    // 🔍 Validar que el token tenga formato JWT
+    if (!token.startsWith('eyJ')) {
+      console.log('❌ Token no es un JWT válido:', token);
+      contenido.innerHTML = `
+        <div class="access-denied">
+          <h2>Token inválido</h2>
+          <p>El token no tiene el formato correcto. Por favor, inicia sesión nuevamente.</p>
+          <a href="login.html">Iniciar sesión</a>
+        </div>
+      `;
+      exit;
+    }
+  </script>
+
+  <script>
+    // Menú responsive
+    document.querySelector('.menu-btn')?.addEventListener('click', () => {
+      document.querySelector('.menu-links')?.classList.toggle('show');
+    });
+  </script>
+
+  <script>
+    async function cargarPerfil() {
+      try {
+        console.log('📡 Enviando petición a /api/perfil con token:', token);
+
+        const response = await fetch('http://localhost:3000/api/perfil', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        console.log('📥 Respuesta del servidor:', response.status, response.statusText);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('❌ Error del servidor:', errorData);
+          throw new Error(`HTTP ${response.status}: ${errorData.error || response.statusText}`);
+        }
+
+        const usuario = await response.json();
+        console.log('✅ Perfil cargado:', usuario);
+
+        // Cargar datos del usuario
+        contenido.innerHTML = `
+          <div class="profile-card">
+            <h2>Información del Perfil</h2>
+            <div class="profile-info">
+              <p><strong>Nombre:</strong> ${usuario.nombre}</p>
+              <p><strong>Email:</strong> ${usuario.email}</p>
+              <p><strong>Miembro desde:</strong> ${new Date(usuario.creado_en).toLocaleDateString('es-AR')}</p>
+              ${usuario.telefono ? `<p><strong>Teléfono:</strong> ${usuario.telefono}</p>` : ''}
+              ${usuario.direccion ? `<p><strong>Dirección:</strong> ${usuario.direccion}</p>` : ''}
+            </div>
+            <button class="logout-btn" id="logoutBtn">Cerrar Sesión</button>
+          </div>
+
+          <div class="mascotas-usuario">
+            <h3>Mis Mascotas Publicadas</h3>
+            <div id="mascotasUsuario">Cargando...</div>
+          </div>
+        `;
+
+        // Cargar mascotas del usuario
+        const mascotasRes = await fetch('http://localhost:3000/api/mascotas/usuario', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        console.log('📥 Mascotas - Respuesta:', mascotasRes.status);
+
+        const mascotas = await mascotasRes.json();
+        console.log('✅ Mascotas cargadas:', mascotas);
+
+        const mascotasDiv = document.getElementById('mascotasUsuario');
+
+        if (mascotas.length === 0) {
+          mascotasDiv.innerHTML = '<p class="no-mascotas">No has publicado ninguna mascota aún.</p>';
+        } else {
+          mascotasDiv.innerHTML = mascotas.map(m => `
+            <div class="mascota-item">
+              <h4>${m.nombre}</h4>
+              <p><strong>Tipo:</strong> ${m.tipo || 'No especificado'}</p>
+              <p><strong>Raza:</strong> ${m.raza || 'No especificada'}</p>
+              <p><strong>Ubicación:</strong> ${m.ubicacion_ultima}</p>
+              <p><strong>Estado:</strong> 
+                 <span class="estado ${m.estado}">${m.estado === 'perdida' ? 'Perdida' : 'Encontrada'}</span>
+              </p>
+              <p><strong>Publicada:</strong> ${new Date(m.creado_en).toLocaleDateString('es-AR')}</p>
+            </div>
+          `).join('');
+        }
+
+        // Evento para cerrar sesión
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('usuario');
+          alert('Sesión cerrada correctamente');
+          window.location.href = 'index.html';
+        });
+
+      } catch (error) {
+        console.error('🚨 Error FATAL en cargarPerfil:', error);
+        contenido.innerHTML = `
+          <div class="access-denied">
+            <h2>Error al cargar el perfil</h2>
+            <p><strong>${error.message}</strong></p>
+            <p>No se pudo conectar con el servidor o tu sesión ha expirado.</p>
+            <a href="login.html">Volver al inicio de sesión</a>
+          </div>
+        `;
+      }
+    }
+
+    // Cargar el perfil al iniciar
+    cargarPerfil();
+  </script>
+
+</body>
+</html>

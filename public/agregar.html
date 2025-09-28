@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Agregar Mascota - Encuentrame</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- BARRA DE NAVEGACIÓN -->
+  <header class="navbar">
+    <img src="css/img/4.png" alt="Logo Encuéntrame" class="logo">
+    <h1 class="title">Encuentrame</h1>
+    <nav class="menu">
+      <button class="menu-btn">☰</button>
+      <ul class="menu-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="perfil.html">Mi Perfil</a></li>
+        <li><a href="agregar.html">Agregar Mascota</a></li>
+        <li><a href="filtrar.html">Filtrar Mascotas</a></li>
+        <li><a href="chatbot.html">ChatBot IA</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main>
+    <h2>Agregar Mascota</h2>
+    <p>Completa el formulario para reportar una mascota perdida o encontrada.</p>
+
+    <form id="mascotaForm">
+      <label for="nombre">Nombre de la mascota:</label>
+      <input type="text" id="nombre" required minlength="2">
+
+      <label for="tipo">Tipo:</label>
+      <select id="tipo" required>
+        <option value="">Selecciona...</option>
+        <option value="perro">Perro</option>
+        <option value="gato">Gato</option>
+        <option value="ave">Ave</option>
+        <option value="roedor">Roedor</option>
+        <option value="otro">Otro</option>
+      </select>
+
+      <label for="raza">Raza:</label>
+      <input type="text" id="raza">
+
+      <label for="color_principal">Color principal:</label>
+      <input type="text" id="color_principal" placeholder="Ej: marrón, negro, blanco">
+
+      <label for="edad_aproximada">Edad aproximada (en años):</label>
+      <input type="number" id="edad_aproximada" min="0" max="25">
+
+      <label for="descripcion">Descripción (tamaño, rasgos, etc.):</label>
+      <textarea id="descripcion" rows="4" placeholder="Ej: tiene una mancha blanca en el pecho, es muy juguetón..."></textarea>
+
+      <label for="foto_url">URL de la foto:</label>
+      <input type="url" id="foto_url" placeholder="https://ejemplo.com/foto.jpg" required>
+
+      <label for="estado">Estado:</label>
+      <div>
+        <label><input type="radio" name="estado" value="perdida" checked> Perdida</label>
+        <label><input type="radio" name="estado" value="encontrada"> Encontrada</label>
+      </div>
+
+      <label for="ubicacion_ultima">Ubicación (barrio, ciudad):</label>
+      <input type="text" id="ubicacion_ultima" required>
+
+      <button type="submit">Publicar Mascota</button>
+    </form>
+
+    <p id="mensaje"></p>
+  </main>
+
+  <!-- SCRIPTS -->
+  <script>
+    // Menú responsive
+    document.querySelector('.menu-btn')?.addEventListener('click', () => {
+      document.querySelector('.menu-links')?.classList.toggle('show');
+    });
+  </script>
+
+  <script>
+    document.getElementById('mascotaForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      // Obtener datos del formulario
+      const nombre = document.getElementById('nombre').value.trim();
+      const tipo = document.getElementById('tipo').value;
+      const raza = document.getElementById('raza').value.trim();
+      const color_principal = document.getElementById('color_principal').value.trim();
+      const edad_aproximada = document.getElementById('edad_aproximada').value;
+      const descripcion = document.getElementById('descripcion').value.trim();
+      const foto_url = document.getElementById('foto_url').value.trim();
+      const estado = document.querySelector('input[name="estado"]:checked').value;
+      const ubicacion_ultima = document.getElementById('ubicacion_ultima').value.trim();
+
+      // Verificar que el usuario esté logueado
+      const token = localStorage.getItem('token');
+      if (!token) {
+        document.getElementById('mensaje').textContent = 'Debes iniciar sesión para agregar una mascota.';
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:3000/api/mascotas', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            nombre,
+            tipo,
+            raza,
+            color_principal,
+            edad_aproximada,
+            descripcion,
+            foto_url,
+            estado,
+            ubicacion_ultima
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.mensaje) {
+          document.getElementById('mensaje').textContent = data.mensaje;
+          // Limpiar formulario
+          document.getElementById('mascotaForm').reset();
+        } else {
+          document.getElementById('mensaje').textContent = data.error || 'Error al publicar la mascota.';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('mensaje').textContent = 'Hubo un problema al conectar con el servidor.';
+      }
+    });
+  </script>
+
+</body>
+</html>
