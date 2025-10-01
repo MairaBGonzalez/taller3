@@ -1,39 +1,128 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ChatBot IA - Encuéntrame</title>
-  <link rel="stylesheet" href="css/styles.css"/>
-</head>
-<body>
-  <header class="navbar">
-    <img src="css/img/4.png" alt="Logo Encuéntrame" class="logo">
-    <h1 class="title">Encuentrame</h1>
-    <nav class="menu">
-      <button class="menu-btn">☰</button>
-      <ul class="menu-links">
-        <li><a href="index.html">Inicio</a></li>
-        <li><a href="perfil.html">Mi Perfil</a></li>
-        <li><a href="agregar.html">Agregar Mascota</a></li>
-        <li><a href="filtrar.html">Filtrar Mascotas</a></li>
-        <li><a href="chatbot.html">ChatBot IA</a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <main class="contenido">
-    <h2>Asistente Inteligente</h2>
-    <p>Escríbenos tus dudas o cuéntanos qué mascota perdiste y te ayudaremos.</p>
-    <!-- Aquí se integrará el chat con IA -->
-  </main>
-
-  <script src="js/main.js"></script>
-</body>
-</html>
+<!-- Ventana del chatbot -->
+<div id="chatbot-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 999;">
+  <button id="chatbot-toggle" style="background: #4a90e2; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer;">💬 ChatBot IA</button>
+  
+  <div id="chatbot-window" style="display: none; width: 300px; height: 400px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: absolute; bottom: 60px; right: 0; overflow: hidden;">
+    <div style="background: #4a90e2; color: white; padding: 10px; text-align: center;">ChatBot Encuéntrame</div>
+    <div id="chatbot-messages" style="height: 300px; overflow-y: scroll; padding: 10px; font-size: 14px;"></div>
+    <input 
+      id="chatbot-input" 
+      type="text" 
+      placeholder="Escribe tu mensaje..." 
+      style="width: 100%; padding: 10px; border: none; border-top: 1px solid #eee; outline: none;"
+      onkeydown="if(event.key==='Enter') enviarMensaje()"
+    >
+  </div>
+</div>
 
 <script>
-  document.querySelector('.menu-btn')?.addEventListener('click', () => {
-    document.querySelector('.menu-links')?.classList.toggle('show');
-  });
+// Base de conocimiento simple
+const baseRespuestas = {
+  "hola": "¡Hola! Soy el asistente de Encuéntrame. ¿En qué puedo ayudarte?",
+  "como publico una mascota": "Para publicar una mascota perdida o encontrada, ve a 'Agregar Mascota', completa los datos y sube una foto.",
+  "que hago si encuentro un perro": "¡Gracias por querer ayudar! Publicá una mascota encontrada con foto y ubicación. Así su dueño podrá verte.",
+  "es gratis usar la app": "Sí, Encuéntrame es completamente gratuita para todos los usuarios.",
+  "ayuda": "Puedo ayudarte con: cómo publicar, qué hacer si encuentras un animal, y más. Pregúntame algo."
+};
+
+let mostrandoMatching = false;
+
+function abrirChatbot() {
+  document.getElementById('chatbot-window').style.display = 'block';
+  agregarMensaje("🤖", "Hola, soy tu asistente. Escribe 'ayuda' para ver opciones.");
+}
+
+function cerrarChatbot() {
+  document.getElementById('chatbot-window').style.display = 'none';
+}
+
+function agregarMensaje(emisor, mensaje) {
+  const mensajesDiv = document.getElementById('chatbot-messages');
+  const mensajeEl = document.createElement('p');
+  mensajeEl.innerHTML = `<strong>${emisor}:</strong> ${mensaje}`;
+  mensajeEl.style.margin = '5px 0';
+  mensajeEl.style.textAlign = emisor === 'Tú' ? 'right' : 'left';
+  mensajeEl.style.color = emisor === 'Tú' ? '#fff' : '#000';
+  mensajeEl.style.backgroundColor = emisor === 'Tú' ? '#4a90e2' : '#f0f0f0';
+  mensajeEl.style.padding = '8px 10px';
+  mensajeEl.style.borderRadius = '8px';
+  mensajeEl.style.maxWidth = '80%';
+  mensajeEl.style.wordWrap = 'break-word';
+  mensajesDiv.appendChild(mensajeEl);
+  mensajesDiv.scrollTop = mensajesDiv.scrollHeight;
+}
+
+function enviarMensaje() {
+  const input = document.getElementById('chatbot-input');
+  const mensaje = input.value.trim().toLowerCase();
+  
+  if (!mensaje) return;
+
+  agregarMensaje("Tú", input.value);
+  
+  // Respuesta automática
+  let respuesta = "No entiendo tu pregunta. Escribe 'ayuda' para ver opciones.";
+  
+  for (const clave in baseRespuestas) {
+    if (mensaje.includes(clave)) {
+      respuesta = baseRespuestas[clave];
+      break;
+    }
+  }
+
+  setTimeout(() => {
+    agregarMensaje("🤖", respuesta);
+    
+    // Ofrecer matching después de ciertas palabras
+    if (mensaje.includes("encontré") || mensaje.includes("perdido") || mensaje.includes("foto")) {
+      setTimeout(() => {
+        agregarMensaje("🤖", "¿Querés que compare esta foto con mascotas perdidas cercanas?");
+        
+        const btnSi = document.createElement('button');
+        btnSi.textContent = "Sí, buscar coincidencias";
+        btnSi.style.background = "#4a90e2";
+        btnSi.style.color = "white";
+        btnSi.style.border = "none";
+        btnSi.style.padding = "8px 10px";
+        btnSi.style.borderRadius = "4px";
+        btnSi.style.marginTop = "5px";
+        btnSi.onclick = function() {
+          mostrarMatching();
+          this.disabled = true;
+        };
+        document.getElementById('chatbot-messages').appendChild(btnSi);
+      }, 1000);
+    }
+  }, 800);
+
+  input.value = '';
+}
+
+function mostrarMatching() {
+  agregarMensaje("🤖", "🔍 Analizando similitud con mascotas perdidas...");
+  
+  setTimeout(() => {
+    agregarMensaje("🤖", "🔎 Encontré una coincidencia al 87%: 'Luna', gata gris, vista cerca del Parque Central hace 2 horas.");
+    const link = document.createElement('a');
+    link.href = 'filtrar.html';
+    link.textContent = "Ver detalles →";
+    link.style.display = 'block';
+    link.style.marginTop = '5px';
+    link.style.color = '#4a90e2';
+    document.getElementById('chatbot-messages').appendChild(link);
+  }, 2000);
+}
+
+// Eventos
+document.getElementById('chatbot-toggle').addEventListener('click', function() {
+  const window = document.getElementById('chatbot-window');
+  if (window.style.display === 'none') {
+    window.style.display = 'block';
+    if (document.querySelectorAll('#chatbot-messages p').length === 0) {
+      abrirChatbot();
+    }
+  } else {
+    window.style.display = 'none';
+  }
+});
 </script>

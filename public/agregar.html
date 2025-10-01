@@ -256,10 +256,39 @@
         document.getElementById('mensaje').textContent = 'Por favor, selecciona una foto.';
         return;
       }
+      function compressImage(base64, maxWidth = 800, maxHeight = 800) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.src = base64;
+          img.onload = () => {
+            let { width, height } = img;
+
+      // Redimensionar si es muy grande
+            if (width > maxWidth || height > maxHeight) {
+              if (width / maxWidth > height / maxHeight) {
+                height *= maxWidth / width;
+                width = maxWidth;
+              } else {
+                width *= maxHeight / height;
+                height = maxHeight;
+              }
+            }
+
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+      
+      // Convertir a Base64 con calidad reducida (0.7)
+            resolve(canvas.toDataURL("image/jpeg", 0.7));
+          };
+        });
+      }
 
       const reader = new FileReader();
       reader.onload = async function(e) {
-        const fotoBase64 = e.target.result;
+        const fotoBase64 = await compressImage(e.target.result);
         const token = localStorage.getItem('token');
         if (!token) {
           document.getElementById('mensaje').textContent = 'Debes iniciar sesión para agregar una mascota.';
@@ -304,6 +333,11 @@
 
       reader.readAsDataURL(file);
     });
+
+    // Guardar datos temporales para el chatbot
+    localStorage.setItem('ultima_mascota_tipo', document.getElementById('tipo').value);
+    localStorage.setItem('ultima_mascota_color', document.getElementById('color_principal').value);
+    localStorage.setItem('ultima_mascota_ubicacion', document.getElementById('ubicacion_ultima').value);
   </script>
 
 </body>
