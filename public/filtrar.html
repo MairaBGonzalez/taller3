@@ -171,32 +171,130 @@
 
   <!-- Scripts -->
   <script>
-    document.querySelector('.menu-btn')?.addEventListener('click', () => {
-      document.querySelector('.menu-links')?.classList.toggle('show');
-    });
+  document.querySelector('.menu-btn')?.addEventListener('click', () => {
+    document.querySelector('.menu-links')?.classList.toggle('show');
+  });
 
-    document.getElementById('filtroForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
+  // Función para buscar y mostrar mascotas
+  async function buscarMascotas() {
+    const tipo = document.getElementById('tipo').value;
+    const color = document.getElementById('color').value.trim();
+    const estado = document.getElementById('estado').value;
+    const ubicacion = document.getElementById('ubicacion').value.trim();
 
-      const tipo = document.getElementById('tipo').value;
-      const color = document.getElementById('color').value.trim();
-      const estado = document.getElementById('estado').value;
-      const ubicacion = document.getElementById('ubicacion').value.trim();
+    try {
+      let url = 'http://localhost:3000/api/mascotas';
+      const params = new URLSearchParams();
+      if (tipo) params.append('tipo', tipo);
+      if (color) params.append('color_principal', color);
+      if (estado) params.append('estado', estado);
+      if (ubicacion) params.append('ubicacion_ultima', ubicacion);
+      
+      const response = await fetch(`${url}?${params}`);
+      const mascotas = await response.json();
 
-      try {
-        const response = await fetch(`http://localhost:3000/api/mascotas/filtrar?tipo=${tipo}&color=${color}&estado=${estado}&ubicacion=${ubicacion}`);
-        const data = await response.json();
-
-        if (data.length > 0) {
-          document.getElementById('resultado').textContent = `Se encontraron ${data.length} mascotas.`;
-        } else {
-          document.getElementById('resultado').textContent = 'No se encontraron mascotas con esos criterios.';
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('resultado').textContent = 'Error al conectar con el servidor.';
+      const resultadoDiv = document.getElementById('resultado');
+      if (mascotas.length > 0) {
+        resultadoDiv.innerHTML = `
+          <h3 style="text-align: center; margin: 20px 0; color: #0277bd;">Resultados encontrados</h3>
+          <div class="mascotas-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px;">
+            ${mascotas.map(m => `
+              <div class="mascota-card" style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div class="mascota-img-container" style="text-align: center;">
+                  <img src="${m.foto_url || 'https://placehold.co/300x200?text=Sin+Foto'}" 
+                       alt="${m.nombre || 'Mascota'}" 
+                       style="width: 100%; height: 180px; object-fit: cover; border-radius: 6px;">
+                </div>
+                <div class="mascota-info" style="margin-top: 10px;">
+                  <h4 style="margin: 8px 0; font-size: 1.1rem;">${m.nombre || 'Sin nombre'}</h4>
+                  <p><strong>Tipo:</strong> ${m.tipo || '—'}</p>
+                  <p><strong>Color:</strong> ${m.color_principal || '—'}</p>
+                  <p><strong>Ubicación:</strong> ${m.ubicacion_ultima || '—'}</p>
+                  <p><strong>Estado:</strong> <span style="color: ${m.estado === 'perdida' ? '#e74c3c' : '#27ae60'}; font-weight: bold;">${m.estado === 'perdida' ? 'Perdida' : 'Encontrada'}</span></p>
+                  
+                  <!-- ✅ BOTÓN DE COINCIDENCIAS (Paso 1) -->
+                  <div style="padding: 10px; text-align: center;">
+                    <button 
+                      class="btn-match" 
+                      onclick="buscarCoincidencias('${m.tipo}', '${m.color_principal}', '${m.ubicacion_ultima}')"
+                      style="background: #27ae60; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 0.9rem; cursor: pointer;">
+                      🔍 Buscar coincidencias
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        resultadoDiv.innerHTML = '<p>No se encontraron mascotas con esos criterios.</p>';
       }
-    });
-  </script>
+    } catch (error) {
+      console.error('Error:', error);
+      document.getElementById('resultado').textContent = 'Error al conectar con el servidor.';
+    }
+  }
+
+  // Evento del formulario
+  document.getElementById('filtroForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    buscarMascotas();
+  });
+
+  // ✅ FUNCIÓN DE MATCHING (Paso 2)
+  async function buscarCoincidencias(tipo, color, ubicacion) {
+    let resultadosDiv = document.getElementById('resultados-matching');
+    if (!resultadosDiv) {
+      resultadosDiv = document.createElement('div');
+      resultadosDiv.id = 'resultados-matching';
+      resultadosDiv.style.marginTop = '30px';
+      resultadosDiv.style.padding = '15px';
+      resultadosDiv.style.backgroundColor = '#f9f9f9';
+      resultadosDiv.style.borderRadius = '8px';
+      document.getElementById('resultado').parentNode.insertBefore(resultadosDiv, document.getElementById('resultado').nextSibling);
+    }
+
+    try {
+      let url = `http://localhost:3000/api/mascotas?estado=perdida`;
+      if (tipo) url += `&tipo=${encodeURIComponent(tipo)}`;
+      if (color) url += `&color_principal=${encodeURIComponent(color)}`;
+
+      const response = await fetch(url);
+      const mascotas = await response.json();
+
+      if (mascotas.length > 0) {
+        resultadosDiv.innerHTML = `
+          <h3>🔍 Coincidencias encontradas</h3>
+          <p>Se encontraron <strong>${mascotas.length}</strong> mascota(s) perdida(s) similares:</p>
+          <div class="mascotas-list" style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 15px;">
+            ${mascotas.map(m => `
+              <div class="mascota-card" style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; width: 280px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div class="mascota-img-container" style="text-align: center;">
+                  <img src="${m.foto_url || 'https://placehold.co/300x200?text=Sin+Foto'}" 
+                       alt="${m.nombre}" 
+                       style="width: 100%; height: 180px; object-fit: cover; border-radius: 6px;">
+                </div>
+                <div class="mascota-info" style="margin-top: 10px;">
+                  <h4>${m.nombre}</h4>
+                  <p><strong>Tipo:</strong> ${m.tipo}</p>
+                  <p><strong>Color:</strong> ${m.color_principal}</p>
+                  <p><strong>Ubicación:</strong> ${m.ubicacion_ultima}</p>
+                  <p><strong>Estado:</strong> <span style="color: #e74c3c; font-weight: bold;">Perdida</span></p>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        resultadosDiv.innerHTML = '<p>❌ No se encontraron mascotas perdidas similares.</p>';
+      }
+    } catch (error) {
+      console.error('Error al buscar coincidencias:', error);
+      resultadosDiv.innerHTML = '<p>⚠️ Hubo un problema al buscar coincidencias.</p>';
+    }
+  }
+</script>
+
+  
 </body>
 </html>
