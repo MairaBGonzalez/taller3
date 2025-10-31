@@ -1,128 +1,452 @@
-<!-- Ventana del chatbot -->
-<div id="chatbot-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 999;">
-  <button id="chatbot-toggle" style="background: #4a90e2; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer;">💬 ChatBot IA</button>
-  
-  <div id="chatbot-window" style="display: none; width: 300px; height: 400px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: absolute; bottom: 60px; right: 0; overflow: hidden;">
-    <div style="background: #4a90e2; color: white; padding: 10px; text-align: center;">ChatBot Encuéntrame</div>
-    <div id="chatbot-messages" style="height: 300px; overflow-y: scroll; padding: 10px; font-size: 14px;"></div>
-    <input 
-      id="chatbot-input" 
-      type="text" 
-      placeholder="Escribe tu mensaje..." 
-      style="width: 100%; padding: 10px; border: none; border-top: 1px solid #eee; outline: none;"
-      onkeydown="if(event.key==='Enter') enviarMensaje()"
-    >
-  </div>
-</div>
-
-<script>
-// Base de conocimiento simple
-const baseRespuestas = {
-  "hola": "¡Hola! Soy el asistente de Encuéntrame. ¿En qué puedo ayudarte?",
-  "como publico una mascota": "Para publicar una mascota perdida o encontrada, ve a 'Agregar Mascota', completa los datos y sube una foto.",
-  "que hago si encuentro un perro": "¡Gracias por querer ayudar! Publicá una mascota encontrada con foto y ubicación. Así su dueño podrá verte.",
-  "es gratis usar la app": "Sí, Encuéntrame es completamente gratuita para todos los usuarios.",
-  "ayuda": "Puedo ayudarte con: cómo publicar, qué hacer si encuentras un animal, y más. Pregúntame algo."
-};
-
-let mostrandoMatching = false;
-
-function abrirChatbot() {
-  document.getElementById('chatbot-window').style.display = 'block';
-  agregarMensaje("🤖", "Hola, soy tu asistente. Escribe 'ayuda' para ver opciones.");
-}
-
-function cerrarChatbot() {
-  document.getElementById('chatbot-window').style.display = 'none';
-}
-
-function agregarMensaje(emisor, mensaje) {
-  const mensajesDiv = document.getElementById('chatbot-messages');
-  const mensajeEl = document.createElement('p');
-  mensajeEl.innerHTML = `<strong>${emisor}:</strong> ${mensaje}`;
-  mensajeEl.style.margin = '5px 0';
-  mensajeEl.style.textAlign = emisor === 'Tú' ? 'right' : 'left';
-  mensajeEl.style.color = emisor === 'Tú' ? '#fff' : '#000';
-  mensajeEl.style.backgroundColor = emisor === 'Tú' ? '#4a90e2' : '#f0f0f0';
-  mensajeEl.style.padding = '8px 10px';
-  mensajeEl.style.borderRadius = '8px';
-  mensajeEl.style.maxWidth = '80%';
-  mensajeEl.style.wordWrap = 'break-word';
-  mensajesDiv.appendChild(mensajeEl);
-  mensajesDiv.scrollTop = mensajesDiv.scrollHeight;
-}
-
-function enviarMensaje() {
-  const input = document.getElementById('chatbot-input');
-  const mensaje = input.value.trim().toLowerCase();
-  
-  if (!mensaje) return;
-
-  agregarMensaje("Tú", input.value);
-  
-  // Respuesta automática
-  let respuesta = "No entiendo tu pregunta. Escribe 'ayuda' para ver opciones.";
-  
-  for (const clave in baseRespuestas) {
-    if (mensaje.includes(clave)) {
-      respuesta = baseRespuestas[clave];
-      break;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ChatBot IA - Encuéntrame</title>
+  <style>
+    :root {
+      --primary-color: #0277bd;
+      --secondary-color: #0277bd;
+      --accent-color: #ff9a3c;
+      --light-color: #f5f7fa;
+      --dark-color: #333;
+      --success-color: #4caf50;
+      --error-color: #f44336;
     }
-  }
-
-  setTimeout(() => {
-    agregarMensaje("🤖", respuesta);
     
-    // Ofrecer matching después de ciertas palabras
-    if (mensaje.includes("encontré") || mensaje.includes("perdido") || mensaje.includes("foto")) {
-      setTimeout(() => {
-        agregarMensaje("🤖", "¿Querés que compare esta foto con mascotas perdidas cercanas?");
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: #f0f2f5;
+      color: var(--dark-color);
+      line-height: 1.6;
+    }
+    
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--primary-color);
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .logo {
+      height: 50px;
+      width: auto;
+    }
+    
+    .title {
+      color: white;
+      font-size: 1.8rem;
+      margin-left: 1rem;
+    }
+    
+    .menu {
+      position: relative;
+    }
+    
+    .menu-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+    }
+    
+    .menu-links {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 100%;
+      background-color: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-radius: 5px;
+      overflow: hidden;
+      z-index: 1000;
+    }
+    
+    .menu-links.show {
+      display: block;
+    }
+    
+    .menu-links li {
+      list-style: none;
+    }
+    
+    .menu-links a {
+      display: block;
+      padding: 0.8rem 1.5rem;
+      text-decoration: none;
+      color: var(--dark-color);
+      transition: background-color 0.3s;
+    }
+    
+    .menu-links a:hover {
+      background-color: var(--light-color);
+    }
+    
+    .contenido {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    
+    h2 {
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    
+    .contenido > p {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #666;
+    }
+    
+    /* Estilos del chatbot */
+    .chatbot-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .chat-header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    
+    .chat-messages {
+      height: 400px;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .message {
+      max-width: 80%;
+      padding: 0.8rem 1rem;
+      border-radius: 18px;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .user-message {
+      align-self: flex-end;
+      background-color: var(--secondary-color);
+      color: white;
+      border-bottom-right-radius: 5px;
+    }
+    
+    .bot-message {
+      align-self: flex-start;
+      background-color: var(--light-color);
+      border-bottom-left-radius: 5px;
+    }
+    
+    .chat-input-container {
+      display: flex;
+      padding: 1rem;
+      border-top: 1px solid #eee;
+      background-color: white;
+    }
+    
+    .chat-input {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      border: 1px solid #ddd;
+      border-radius: 25px;
+      outline: none;
+      font-size: 1rem;
+    }
+    
+    .chat-input:focus {
+      border-color: var(--primary-color);
+    }
+    
+    .send-btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      margin-left: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+        justify-content: center;
+      transition: background-color 0.3s;
+    }
+    
+    .send-btn:hover {
+      background-color: var(--secondary-color);
+    }
+    
+    .typing-indicator {
+      display: none;
+      align-self: flex-start;
+      background-color: var(--light-color);
+      padding: 0.8rem 1rem;
+      border-radius: 18px;
+      border-bottom-left-radius: 5px;
+      color: #666;
+      font-style: italic;
+    }
+    
+    .typing-indicator span {
+      animation: typing 1.4s infinite;
+    }
+    
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    
+    @keyframes typing {
+      0%, 60%, 100% { opacity: 0.3; }
+      30% { opacity: 1; }
+    }
+    
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0 1rem 1rem;
+      background-color: white;
+    }
+    
+    .suggestion-btn {
+      background-color: var(--light-color);
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .suggestion-btn:hover {
+      background-color: var(--secondary-color);
+      color: white;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 1rem;
+      }
+      
+      .title {
+        font-size: 1.5rem;
+      }
+      
+      .chat-messages {
+        height: 350px;
+      }
+      
+      .message {
+        max-width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div style="display: flex; align-items: center;">
+      <img src="css/img/4.png" alt="Logo Encuéntrame" class="logo">
+      <h1 class="title">Encuentrame</h1>
+    </div>
+    <nav class="menu">
+      <button class="menu-btn">☰</button>
+      <ul class="menu-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="perfil.html">Mi Perfil</a></li>
+        <li><a href="agregar.html">Agregar Mascota</a></li>
+        <li><a href="filtrar.html">Filtrar Mascotas</a></li>
+        <li><a href="chatbot.html">ChatBot IA</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="contenido">
+    <h2>Asistente Inteligente</h2>
+    <p>Escríbenos tus dudas o cuéntanos qué mascota perdiste y te ayudaremos.</p>
+    
+    <div class="chatbot-container">
+      <div class="chat-header">
+        <h3>Asistente Encuéntrame</h3>
+      </div>
+      
+      <div class="chat-messages" id="chatMessages">
+        <div class="message bot-message">
+          ¡Hola! Soy tu asistente de Encuéntrame. ¿En qué puedo ayudarte hoy? Puedes contarme sobre una mascota perdida o hacerme cualquier pregunta relacionada.
+        </div>
+      </div>
+      
+      <div class="suggestions">
+        <button class="suggestion-btn" data-question="Perdí mi mascota, ¿qué debo hacer?">Perdí mi mascota, ¿qué debo hacer?</button>
+        <button class="suggestion-btn" data-question="Encontré una mascota perdida">Encontré una mascota perdida</button>
+        <button class="suggestion-btn" data-question="¿Cómo registro una mascota perdida?">¿Cómo registro una mascota perdida?</button>
+        <button class="suggestion-btn" data-question="Consejos para prevenir que se pierda una mascota">Consejos para prevenir que se pierda una mascota</button>
+      </div>
+      
+      <div class="chat-input-container">
+        <input type="text" class="chat-input" id="chatInput" placeholder="Escribe tu mensaje aquí...">
+        <button class="send-btn" id="sendBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.querySelector('.menu-btn')?.addEventListener('click', () => {
+      document.querySelector('.menu-links')?.classList.toggle('show');
+    });
+
+    // Funcionalidad del chatbot
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+    const typingIndicator = document.createElement('div');
+    typingIndicator.className = 'typing-indicator';
+    typingIndicator.innerHTML = 'El asistente está escribiendo<span>.</span><span>.</span><span>.</span>';
+    
+    // Respuestas predefinidas del chatbot
+    const botResponses = {
+      "saludo": ["¡Hola! ¿En qué puedo ayudarte hoy?", "¡Hola! Cuéntame, ¿has perdido una mascota o encontraste alguna?"],
+      "perdi_mascota": [
+        "Lamento escuchar que perdiste a tu mascota. Te recomiendo: 1) Revisar inmediatamente la zona donde se perdió, 2) Publicar en nuestra plataforma con fotos recientes, 3) Contactar a refugios y veterinarios locales, 4) Compartir en redes sociales. ¿Quieres que te ayude a crear una publicación?",
+        "Entiendo tu preocupación. Lo primero es mantener la calma y buscar en los lugares favoritos de tu mascota. Luego, crea una publicación detallada en Encuéntrame con fotos recientes. También puedes imprimir volantes con información de contacto. ¿Necesitas ayuda con algún paso específico?"
+      ],
+      "encontre_mascota": [
+        "¡Gracias por ayudar! Te sugiero: 1) Verificar si tiene placa de identificación, 2) Llevarla a un veterinario para escanear el microchip, 3) Publicar en Encuéntrame que encontraste una mascota (sin dar todos los detalles), 4) Publicar en grupos locales de redes sociales. ¿La mascota parece estar asustada o herida?",
+        "Es muy noble de tu parte ayudar. Si la mascota está asustada, acércate con calma. Publica en nuestra plataforma con una foto general (no demasiado específica) para que el dueño legítimo pueda identificarla. También puedes contactar a refugios locales. ¿Necesitas ayuda para publicar?"
+      ],
+      "registrar_mascota": [
+        "Para registrar una mascota perdida: 1) Ve a la sección 'Agregar Mascota', 2) Completa el formulario con detalles como especie, raza, color, tamaño, 3) Añade fotos claras, 4) Proporciona información de contacto. ¿Te gustaría que te guíe paso a paso?",
+        "Registrar una mascota es sencillo. Solo necesitas ir a 'Agregar Mascota' en el menú principal y completar la información solicitada. Es importante incluir fotos recientes y características distintivas. ¿Tienes alguna duda específica sobre el proceso?"
+      ],
+      "prevencion_perdida": [
+        "Para prevenir que tu mascota se pierda: 1) Usa correa en paseos, 2) Mantén puertas y ventanas cerradas, 3) Microchip y placa de identificación, 4) Entrenamiento de obediencia básica, 5) Patio cercado de forma segura. ¿Te interesa más información sobre alguno de estos puntos?",
+        "La prevención es clave. Te recomiendo: collares con identificación actualizada, microchip (obligatorio en muchas áreas), supervisión constante en exteriores, y fotos actualizadas por si ocurre un imprevisto. ¿Tu mascota ya tiene microchip?"
+      ],
+      "despedida": ["¡Espero haberte ayudado! No dudes en consultarme si tienes más preguntas. ¡Buena suerte!", "Fue un gusto ayudarte. Recuerda que estamos aquí para apoyarte en la búsqueda de tu mascota. ¡Cuídate!"],
+      "default": ["Entiendo. ¿Podrías darme más detalles para poder ayudarte mejor?", "No estoy seguro de entender completamente. ¿Podrías reformular tu pregunta o contarme más sobre tu situación?"]
+    };
+
+    // Función para agregar mensaje al chat
+    function addMessage(text, isUser = false) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+      messageDiv.textContent = text;
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Función para mostrar indicador de escritura
+    function showTypingIndicator() {
+      chatMessages.appendChild(typingIndicator);
+      typingIndicator.style.display = 'block';
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Función para ocultar indicador de escritura
+    function hideTypingIndicator() {
+      typingIndicator.style.display = 'none';
+    }
+
+    // Función para obtener respuesta del bot
+    function getBotResponse(userMessage) {
+      userMessage = userMessage.toLowerCase();
+      
+      // Detectar intención del usuario
+      if (userMessage.includes('hola') || userMessage.includes('buenas')) {
+        return botResponses.saludo[Math.floor(Math.random() * botResponses.saludo.length)];
+      } else if (userMessage.includes('perdí') || userMessage.includes('perdi') || userMessage.includes('extravi')) {
+        return botResponses.perdi_mascota[Math.floor(Math.random() * botResponses.perdi_mascota.length)];
+      } else if (userMessage.includes('encontré') || userMessage.includes('encontre') || userMessage.includes('hallé')) {
+        return botResponses.encontre_mascota[Math.floor(Math.random() * botResponses.encontre_mascota.length)];
+      } else if (userMessage.includes('registrar') || userMessage.includes('publicar') || userMessage.includes('agregar')) {
+        return botResponses.registrar_mascota[Math.floor(Math.random() * botResponses.registrar_mascota.length)];
+      } else if (userMessage.includes('prevenir') || userMessage.includes('evitar') || userMessage.includes('consejo')) {
+        return botResponses.prevencion_perdida[Math.floor(Math.random() * botResponses.prevencion_perdida.length)];
+      } else if (userMessage.includes('gracias') || userMessage.includes('adiós') || userMessage.includes('chao')) {
+        return botResponses.despedida[Math.floor(Math.random() * botResponses.despedida.length)];
+      } else {
+        return botResponses.default[Math.floor(Math.random() * botResponses.default.length)];
+      }
+    }
+
+    // Función para manejar el envío de mensajes
+    function handleSendMessage() {
+      const message = chatInput.value.trim();
+      if (message) {
+        addMessage(message, true);
+        chatInput.value = '';
         
-        const btnSi = document.createElement('button');
-        btnSi.textContent = "Sí, buscar coincidencias";
-        btnSi.style.background = "#4a90e2";
-        btnSi.style.color = "white";
-        btnSi.style.border = "none";
-        btnSi.style.padding = "8px 10px";
-        btnSi.style.borderRadius = "4px";
-        btnSi.style.marginTop = "5px";
-        btnSi.onclick = function() {
-          mostrarMatching();
-          this.disabled = true;
-        };
-        document.getElementById('chatbot-messages').appendChild(btnSi);
-      }, 1000);
+        showTypingIndicator();
+        
+        // Simular tiempo de respuesta del bot
+        setTimeout(() => {
+          hideTypingIndicator();
+          const botResponse = getBotResponse(message);
+          addMessage(botResponse);
+        }, 1500);
+      }
     }
-  }, 800);
 
-  input.value = '';
-}
-
-function mostrarMatching() {
-  agregarMensaje("🤖", "🔍 Analizando similitud con mascotas perdidas...");
-  
-  setTimeout(() => {
-    agregarMensaje("🤖", "🔎 Encontré una coincidencia al 87%: 'Luna', gata gris, vista cerca del Parque Central hace 2 horas.");
-    const link = document.createElement('a');
-    link.href = 'filtrar.html';
-    link.textContent = "Ver detalles →";
-    link.style.display = 'block';
-    link.style.marginTop = '5px';
-    link.style.color = '#4a90e2';
-    document.getElementById('chatbot-messages').appendChild(link);
-  }, 2000);
-}
-
-// Eventos
-document.getElementById('chatbot-toggle').addEventListener('click', function() {
-  const window = document.getElementById('chatbot-window');
-  if (window.style.display === 'none') {
-    window.style.display = 'block';
-    if (document.querySelectorAll('#chatbot-messages p').length === 0) {
-      abrirChatbot();
-    }
-  } else {
-    window.style.display = 'none';
-  }
-});
-</script>
+    // Event listeners
+    sendBtn.addEventListener('click', handleSendMessage);
+    
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleSendMessage();
+      }
+    });
+    
+    // Agregar funcionalidad a los botones de sugerencia
+    suggestionBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const question = btn.getAttribute('data-question');
+        addMessage(question, true);
+        
+        showTypingIndicator();
+        
+        setTimeout(() => {
+          hideTypingIndicator();
+          const botResponse = getBotResponse(question);
+          addMessage(botResponse);
+        }, 1500);
+      });
+    });
+  </script>
+</body>
+</html>
