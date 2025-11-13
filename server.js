@@ -223,3 +223,58 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
+
+// AGREGAR al inicio de server.js (o antes de usar Express y demás)
+require('dotenv').config(); // Carga las variables de .env
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+// Inicializa el cliente de Gemini
+const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = "gemini-2.5-flash"; // Modelo ideal para chat rápido
+
+// **(Resto de tus imports: express, pool, etc.)**
+// const express = require('express');
+// ...
+
+
+
+//  función chatbot
+async function getGeminiResponse(prompt) {
+    // Instrucciones que guían el comportamiento del chatbot
+    const systemInstruction = `Eres un asistente amable y servicial para una aplicación de búsqueda y registro de mascotas perdidas.
+    Tu función es:
+    1. Ayudar a los usuarios a encontrar sus mascotas perdidas (aunque no tienes acceso directo a la base de datos, puedes darles consejos sobre cómo usar la app o qué información registrar).
+    2. Responder preguntas sobre el uso de la aplicación (cómo registrar una mascota, cómo contactar a otros usuarios, etc.).
+    3. Mantener un tono empático y positivo. Si te preguntan algo fuera de tema, recuérdales tu función.
+    `;
+
+    try {
+        const result = await ai.models.generateContent({
+            model: model,
+            contents: prompt,
+            config: {
+                systemInstruction: systemInstruction,
+            },
+        });
+        return result.text;
+    } catch (error) {
+        console.error("Error al llamar a la API de Gemini:", error);
+        return "Lo siento, tuve un problema para conectarme con mi cerebro de IA. Por favor, inténtalo de nuevo más tarde.";
+    }
+}
+
+
+// js/chatfront.js (Conceptual)
+async function enviarMensaje(mensajeUsuario) {
+    const response = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ mensaje: mensajeUsuario }),
+    });
+
+    const data = await response.json();
+    // Muestra data.respuesta en la caja del chat
+    console.log(data.respuesta);
+}

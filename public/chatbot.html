@@ -324,129 +324,142 @@
       </div>
     </div>
   </main>
+</div>
+  </main>
 
-  <script>
-    document.querySelector('.menu-btn')?.addEventListener('click', () => {
-      document.querySelector('.menu-links')?.classList.toggle('show');
-    });
+    <script>
+  // --- Código de JavaScript Modificado para Gemini ---
+document.querySelector('.menu-btn')?.addEventListener('click', () => {
+    document.querySelector('.menu-links')?.classList.toggle('show');
+});
 
-    // Funcionalidad del chatbot
-    const chatMessages = document.getElementById('chatMessages');
-    const chatInput = document.getElementById('chatInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const suggestionBtns = document.querySelectorAll('.suggestion-btn');
-    const typingIndicator = document.createElement('div');
-    typingIndicator.className = 'typing-indicator';
-    typingIndicator.innerHTML = 'El asistente está escribiendo<span>.</span><span>.</span><span>.</span>';
-    
-    // Respuestas predefinidas del chatbot
-    const botResponses = {
-      "saludo": ["¡Hola! ¿En qué puedo ayudarte hoy?", "¡Hola! Cuéntame, ¿has perdido una mascota o encontraste alguna?"],
-      "perdi_mascota": [
-        "Lamento escuchar que perdiste a tu mascota. Te recomiendo: 1) Revisar inmediatamente la zona donde se perdió, 2) Publicar en nuestra plataforma con fotos recientes, 3) Contactar a refugios y veterinarios locales, 4) Compartir en redes sociales. ¿Quieres que te ayude a crear una publicación?",
-        "Entiendo tu preocupación. Lo primero es mantener la calma y buscar en los lugares favoritos de tu mascota. Luego, crea una publicación detallada en Encuéntrame con fotos recientes. También puedes imprimir volantes con información de contacto. ¿Necesitas ayuda con algún paso específico?"
-      ],
-      "encontre_mascota": [
-        "¡Gracias por ayudar! Te sugiero: 1) Verificar si tiene placa de identificación, 2) Llevarla a un veterinario para escanear el microchip, 3) Publicar en Encuéntrame que encontraste una mascota (sin dar todos los detalles), 4) Publicar en grupos locales de redes sociales. ¿La mascota parece estar asustada o herida?",
-        "Es muy noble de tu parte ayudar. Si la mascota está asustada, acércate con calma. Publica en nuestra plataforma con una foto general (no demasiado específica) para que el dueño legítimo pueda identificarla. También puedes contactar a refugios locales. ¿Necesitas ayuda para publicar?"
-      ],
-      "registrar_mascota": [
-        "Para registrar una mascota perdida: 1) Ve a la sección 'Agregar Mascota', 2) Completa el formulario con detalles como especie, raza, color, tamaño, 3) Añade fotos claras, 4) Proporciona información de contacto. ¿Te gustaría que te guíe paso a paso?",
-        "Registrar una mascota es sencillo. Solo necesitas ir a 'Agregar Mascota' en el menú principal y completar la información solicitada. Es importante incluir fotos recientes y características distintivas. ¿Tienes alguna duda específica sobre el proceso?"
-      ],
-      "prevencion_perdida": [
-        "Para prevenir que tu mascota se pierda: 1) Usa correa en paseos, 2) Mantén puertas y ventanas cerradas, 3) Microchip y placa de identificación, 4) Entrenamiento de obediencia básica, 5) Patio cercado de forma segura. ¿Te interesa más información sobre alguno de estos puntos?",
-        "La prevención es clave. Te recomiendo: collares con identificación actualizada, microchip (obligatorio en muchas áreas), supervisión constante en exteriores, y fotos actualizadas por si ocurre un imprevisto. ¿Tu mascota ya tiene microchip?"
-      ],
-      "despedida": ["¡Espero haberte ayudado! No dudes en consultarme si tienes más preguntas. ¡Buena suerte!", "Fue un gusto ayudarte. Recuerda que estamos aquí para apoyarte en la búsqueda de tu mascota. ¡Cuídate!"],
-      "default": ["Entiendo. ¿Podrías darme más detalles para poder ayudarte mejor?", "No estoy seguro de entender completamente. ¿Podrías reformular tu pregunta o contarme más sobre tu situación?"]
-    };
+// Referencias a elementos del DOM
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const sendBtn = document.getElementById('sendBtn');
+const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+const typingIndicator = document.createElement('div');
 
-    // Función para agregar mensaje al chat
-    function addMessage(text, isUser = false) {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-      messageDiv.textContent = text;
-      chatMessages.appendChild(messageDiv);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+// Configuración del Indicador de Escritura
+typingIndicator.className = 'typing-indicator';
+typingIndicator.innerHTML = 'El asistente está escribiendo<span>.</span><span>.</span><span>.</span>';
+
+// ------------------------------------------------------------------
+// 1. FUNCIONES BÁSICAS DE CHAT
+// ------------------------------------------------------------------
+
+/**
+ * Función para añadir un mensaje al contenedor del chat
+ * @param {string} text - Contenido del mensaje.
+ * @param {boolean} isUser - true si es mensaje del usuario, false para la IA.
+ */
+function addMessage(text, isUser = false) {
+    const messageDiv = document.createElement('div');
+    // Usamos 'user-message' y 'bot-message' que ya están en tus estilos
+    messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+    messageDiv.textContent = text;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll automático
+}
+
+function showTypingIndicator() {
+    chatMessages.appendChild(typingIndicator);
+    typingIndicator.style.display = 'flex'; // Usamos flex para centrar los puntos (según tus estilos CSS)
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function hideTypingIndicator() {
+    typingIndicator.style.display = 'none';
+    if (typingIndicator.parentNode === chatMessages) {
+        chatMessages.removeChild(typingIndicator);
     }
+}
 
-    // Función para mostrar indicador de escritura
-    function showTypingIndicator() {
-      chatMessages.appendChild(typingIndicator);
-      typingIndicator.style.display = 'block';
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+// ------------------------------------------------------------------
+// 2. INTEGRACIÓN CON API DE GEMINI
+// ------------------------------------------------------------------
 
-    // Función para ocultar indicador de escritura
-    function hideTypingIndicator() {
-      typingIndicator.style.display = 'none';
-    }
+/**
+ * Función que llama a la API de Gemini que creaste en server.js
+ * @param {string} mensajeUsuario - Mensaje escrito por el usuario.
+ */
+async function getGeminiResponse(mensajeUsuario) {
+    try {
+        // Llama al endpoint POST /api/chatbot
+        const response = await fetch('/api/chatbot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            // El cuerpo debe coincidir con req.body en server.js
+            body: JSON.stringify({ mensaje: mensajeUsuario }),
+        });
 
-    // Función para obtener respuesta del bot
-    function getBotResponse(userMessage) {
-      userMessage = userMessage.toLowerCase();
-      
-      // Detectar intención del usuario
-      if (userMessage.includes('hola') || userMessage.includes('buenas')) {
-        return botResponses.saludo[Math.floor(Math.random() * botResponses.saludo.length)];
-      } else if (userMessage.includes('perdí') || userMessage.includes('perdi') || userMessage.includes('extravi')) {
-        return botResponses.perdi_mascota[Math.floor(Math.random() * botResponses.perdi_mascota.length)];
-      } else if (userMessage.includes('encontré') || userMessage.includes('encontre') || userMessage.includes('hallé')) {
-        return botResponses.encontre_mascota[Math.floor(Math.random() * botResponses.encontre_mascota.length)];
-      } else if (userMessage.includes('registrar') || userMessage.includes('publicar') || userMessage.includes('agregar')) {
-        return botResponses.registrar_mascota[Math.floor(Math.random() * botResponses.registrar_mascota.length)];
-      } else if (userMessage.includes('prevenir') || userMessage.includes('evitar') || userMessage.includes('consejo')) {
-        return botResponses.prevencion_perdida[Math.floor(Math.random() * botResponses.prevencion_perdida.length)];
-      } else if (userMessage.includes('gracias') || userMessage.includes('adiós') || userMessage.includes('chao')) {
-        return botResponses.despedida[Math.floor(Math.random() * botResponses.despedida.length)];
-      } else {
-        return botResponses.default[Math.floor(Math.random() * botResponses.default.length)];
-      }
-    }
+        if (!response.ok) {
+            // Si el servidor Node.js tuvo un error (ej. error 500), lo muestra
+            const errorData = await response.json();
+            console.error("Error en la respuesta de la API:", errorData);
+            return "Lo siento, el servidor tuvo un problema. Código: " + response.status;
+        }
 
-    // Función para manejar el envío de mensajes
-    function handleSendMessage() {
-      const message = chatInput.value.trim();
-      if (message) {
-        addMessage(message, true);
-        chatInput.value = '';
+        const data = await response.json();
+        return data.respuesta; // Retorna la respuesta de Gemini
         
-        showTypingIndicator();
-        
-        // Simular tiempo de respuesta del bot
-        setTimeout(() => {
-          hideTypingIndicator();
-          const botResponse = getBotResponse(message);
-          addMessage(botResponse);
-        }, 1500);
-      }
+    } catch (error) {
+        // Error de red (ej. servidor Node.js apagado)
+        console.error('Error al enviar el mensaje:', error);
+        return "Lo siento, no pude contactar al servidor. ¿El servidor Node.js está activo?";
     }
+}
 
-    // Event listeners
-    sendBtn.addEventListener('click', handleSendMessage);
-    
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        handleSendMessage();
-      }
-    });
-    
-    // Agregar funcionalidad a los botones de sugerencia
-    suggestionBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
+// ------------------------------------------------------------------
+// 3. MANEJO DE EVENTOS
+// ------------------------------------------------------------------
+
+/**
+ * Función principal para manejar el envío de mensajes (por botón o Enter)
+ */
+async function handleSendMessage(message) {
+    const messageToSend = message.trim();
+    if (!messageToSend) return;
+
+    // 1. Mostrar el mensaje del usuario
+    addMessage(messageToSend, true);
+    chatInput.value = ''; // Limpiar input
+
+    // 2. Mostrar indicador de escritura
+    showTypingIndicator();
+
+    // 3. Llamar a la API de Gemini
+    const botResponse = await getGeminiResponse(messageToSend);
+
+    // 4. Ocultar indicador y mostrar la respuesta
+    hideTypingIndicator();
+    addMessage(botResponse);
+}
+
+// Event Listeners
+
+// 1. Botón de Enviar
+sendBtn.addEventListener('click', () => {
+    handleSendMessage(chatInput.value);
+});
+
+// 2. Tecla Enter en el input
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault(); // Evita el envío de formulario tradicional
+        handleSendMessage(chatInput.value);
+    }
+});
+
+// 3. Botones de Sugerencia
+suggestionBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
         const question = btn.getAttribute('data-question');
-        addMessage(question, true);
-        
-        showTypingIndicator();
-        
-        setTimeout(() => {
-          hideTypingIndicator();
-          const botResponse = getBotResponse(question);
-          addMessage(botResponse);
-        }, 1500);
-      });
+        handleSendMessage(question);
     });
-  </script>
+});
+</script>
 </body>
 </html>
