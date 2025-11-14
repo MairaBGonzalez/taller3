@@ -4,87 +4,76 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ChatBot IA - Encuentrame</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f7fa;
-      margin: 0;
-      padding: 0;
+    :root{
+      --primary: #4a90e2;
+      --muted: #f4f7fa;
+      --card: #ffffff;
+      --accent: #0277bd;
     }
-    .container {
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      color: #4a90e2;
-    }
-    .chat-container {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
-    .chat-messages {
-      height: 400px;
-      padding: 15px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .message {
-      max-width: 80%;
-      padding: 10px 14px;
-      border-radius: 18px;
-      line-height: 1.4;
-    }
-    .user-message {
-      align-self: flex-end;
-      background: #4a90e2;
-      color: white;
-      border-bottom-right-radius: 5px;
-    }
-    .bot-message {
-      align-self: flex-start;
-      background: #e9ecef;
-      color: #333;
-      border-bottom-left-radius: 5px;
-    }
-    .input-area {
-      display: flex;
-      padding: 15px;
-      background: white;
-      border-top: 1px solid #eee;
-    }
-    .input-area input {
-      flex: 1;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 25px;
-      outline: none;
-    }
-    .input-area button {
-      margin-left: 10px;
-      padding: 12px 20px;
-      background: #4a90e2;
-      color: white;
-      border: none;
-      border-radius: 25px;
-      cursor: pointer;
-    }
-    .input-area button:hover {
-      background: #357abf;
-    }
+    *{box-sizing: border-box;margin:0;padding:0}
+    body{font-family: 'Poppins', Arial, sans-serif;background:var(--muted);color:#222;}
+
+    /* Barra superior compartida */
+    .navbar{display:flex;align-items:center;gap:12px;padding:12px 20px;background:linear-gradient(90deg,var(--primary),#357abf);color:white}
+    .navbar .logo{width:44px;height:44px;border-radius:8px;background:white;padding:6px}
+    .navbar .title{font-size:1.1rem;font-weight:600}
+    .navbar .menu{margin-left:auto}
+    .navbar .menu .menu-links{display:flex;gap:12px;list-style:none}
+    .navbar .menu .menu-links a{color:white;text-decoration:none;font-weight:600}
+
+    .container{max-width:900px;margin:22px auto;padding:16px}
+    h1{color:var(--accent);margin-bottom:8px}
+
+    .chat-container{background:var(--card);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.08);overflow:hidden}
+    .chat-header{padding:12px 16px;border-bottom:1px solid #eef3f7;background:linear-gradient(180deg,#fff, #fbfdff);display:flex;align-items:center;gap:12px}
+    .chat-header h2{margin:0;font-size:1rem;color:var(--primary)}
+
+    .chat-messages{height:520px;padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg,#f8fbff, #ffffff)}
+    .message{max-width:78%;padding:12px 16px;border-radius:14px;line-height:1.4;white-space:pre-wrap}
+    .user-message{align-self:flex-end;background:var(--primary);color:white;border-bottom-right-radius:6px}
+    .bot-message{align-self:flex-start;background:#eef6ff;color:#08325a;border-bottom-left-radius:6px}
+
+    .input-area{display:flex;padding:14px;background:#f7fbff;border-top:1px solid #edf5fb;gap:10px}
+    .input-area input{flex:1;padding:12px;border-radius:30px;border:1px solid #e3eef9}
+    .input-area button{padding:10px 18px;border-radius:30px;border:none;background:var(--primary);color:white;font-weight:600;cursor:pointer}
+
+    /* Mensajes de ayuda (opciones) */
+    .options{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+    .option-btn{background:#eef6ff;color:var(--primary);padding:8px 12px;border-radius:999px;border:1px solid #d7ecff;cursor:pointer;font-weight:600}
+
+    @media (max-width:600px){.chat-messages{height:380px}.container{padding:10px}}
   </style>
 </head>
 <body>
+  <header class="navbar">
+    <img src="css/img/4.png" alt="Logo" class="logo">
+    <div class="title">Encuéntrame</div>
+    <nav class="menu">
+      <ul class="menu-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="agregar.html">Agregar</a></li>
+        <li><a href="filtrar.html">Filtrar</a></li>
+        <li><a href="perfil.html">Perfil</a></li>
+      </ul>
+    </nav>
+  </header>
+
   <div class="container">
-    <h1>ChatBot IA - Encuentrame</h1>
     <div class="chat-container">
+      <div class="chat-header">
+        <h2>ChatBot IA</h2>
+        <div style="margin-left:auto;color:#6b8bbd;font-weight:600">Asistente</div>
+      </div>
       <div class="chat-messages" id="chatMessages">
-        <div class="message bot-message">¡Hola! Soy tu asistente virtual de Encuentrame. ¿En qué puedo ayudarte hoy?</div>
+        <div class="message bot-message">¡Hola! Soy tu asistente virtual de Encuentrame. ¿En qué puedo ayudarte hoy?
+          <div class="options">
+            <button class="option-btn" onclick="sendRaw('1')">1 - Registrar mascota</button>
+            <button class="option-btn" onclick="sendRaw('2')">2 - Buscar mascotas</button>
+            <button class="option-btn" onclick="sendRaw('3')">3 - Ayuda</button>
+          </div>
+        </div>
       </div>
       <div class="input-area">
         <input type="text" id="userInput" placeholder="Escribe tu mensaje..." />
@@ -136,6 +125,31 @@
         }
       } catch (error) {
         console.error('Error:', error);
+        addMessage('Hubo un problema al conectar con el servidor.', 'bot');
+      }
+    }
+
+    // Enviar mensaje crudo (usado por botones de opción)
+    async function sendRaw(msg) {
+      // Mostrar mensaje del usuario (número u opción)
+      addMessage(msg, 'user');
+
+      try {
+        const base = (window.location && window.location.port === '3000') ? window.location.origin : 'http://localhost:3000';
+        const response = await fetch(base + '/api/chatbot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mensaje: msg })
+        });
+        if (!response.ok) {
+          const txt = await response.text().catch(() => '');
+          addMessage(`Error del servidor: ${response.status} ${txt}`, 'bot');
+          return;
+        }
+        const data = await response.json().catch(async () => { return { respuesta: await response.text() }; });
+        if (data && data.respuesta) addMessage(data.respuesta, 'bot');
+      } catch (err) {
+        console.error('Error sendRaw:', err);
         addMessage('Hubo un problema al conectar con el servidor.', 'bot');
       }
     }
