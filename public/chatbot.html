@@ -3,463 +3,141 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ChatBot IA - Encuéntrame</title>
+  <title>ChatBot IA - Encuentrame</title>
   <style>
-    :root {
-      --primary-color: #0277bd;
-      --secondary-color: #0277bd;
-      --accent-color: #ff9a3c;
-      --light-color: #f5f7fa;
-      --dark-color: #333;
-      --success-color: #4caf50;
-      --error-color: #f44336;
-    }
-    
-    * {
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7fa;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    
-    body {
-      background-color: #f0f2f5;
-      color: var(--dark-color);
-      line-height: 1.6;
-    }
-    
-    .navbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background-color: var(--primary-color);
-      padding: 1rem 2rem;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    
-    .logo {
-      height: 50px;
-      width: auto;
-    }
-    
-    .title {
-      color: white;
-      font-size: 1.8rem;
-      margin-left: 1rem;
-    }
-    
-    .menu {
-      position: relative;
-    }
-    
-    .menu-btn {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 1.5rem;
-      cursor: pointer;
-      padding: 0.5rem;
-    }
-    
-    .menu-links {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: 100%;
-      background-color: white;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      border-radius: 5px;
-      overflow: hidden;
-      z-index: 1000;
-    }
-    
-    .menu-links.show {
-      display: block;
-    }
-    
-    .menu-links li {
-      list-style: none;
-    }
-    
-    .menu-links a {
-      display: block;
-      padding: 0.8rem 1.5rem;
-      text-decoration: none;
-      color: var(--dark-color);
-      transition: background-color 0.3s;
-    }
-    
-    .menu-links a:hover {
-      background-color: var(--light-color);
-    }
-    
-    .contenido {
-      max-width: 1200px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-    }
-    
-    h2 {
-      color: var(--primary-color);
-      margin-bottom: 1rem;
-      text-align: center;
-    }
-    
-    .contenido > p {
-      text-align: center;
-      margin-bottom: 2rem;
-      color: #666;
-    }
-    
-    /* Estilos del chatbot */
-    .chatbot-container {
+    .container {
       max-width: 800px;
-      margin: 0 auto;
-      background-color: white;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #4a90e2;
+    }
+    .chat-container {
+      background: white;
       border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       overflow: hidden;
     }
-    
-    .chat-header {
-      background-color: var(--primary-color);
-      color: white;
-      padding: 1rem;
-      text-align: center;
-    }
-    
     .chat-messages {
       height: 400px;
+      padding: 15px;
       overflow-y: auto;
-      padding: 1rem;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 12px;
     }
-    
     .message {
       max-width: 80%;
-      padding: 0.8rem 1rem;
+      padding: 10px 14px;
       border-radius: 18px;
-      position: relative;
-      animation: fadeIn 0.3s ease;
+      line-height: 1.4;
     }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
     .user-message {
       align-self: flex-end;
-      background-color: var(--secondary-color);
+      background: #4a90e2;
       color: white;
       border-bottom-right-radius: 5px;
     }
-    
     .bot-message {
       align-self: flex-start;
-      background-color: var(--light-color);
+      background: #e9ecef;
+      color: #333;
       border-bottom-left-radius: 5px;
     }
-    
-    .chat-input-container {
+    .input-area {
       display: flex;
-      padding: 1rem;
+      padding: 15px;
+      background: white;
       border-top: 1px solid #eee;
-      background-color: white;
     }
-    
-    .chat-input {
+    .input-area input {
       flex: 1;
-      padding: 0.8rem 1rem;
+      padding: 12px;
       border: 1px solid #ddd;
       border-radius: 25px;
       outline: none;
-      font-size: 1rem;
     }
-    
-    .chat-input:focus {
-      border-color: var(--primary-color);
-    }
-    
-    .send-btn {
-      background-color: var(--primary-color);
+    .input-area button {
+      margin-left: 10px;
+      padding: 12px 20px;
+      background: #4a90e2;
       color: white;
       border: none;
-      border-radius: 50%;
-      width: 45px;
-      height: 45px;
-      margin-left: 0.5rem;
+      border-radius: 25px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-        justify-content: center;
-      transition: background-color 0.3s;
     }
-    
-    .send-btn:hover {
-      background-color: var(--secondary-color);
-    }
-    
-    .typing-indicator {
-      display: none;
-      align-self: flex-start;
-      background-color: var(--light-color);
-      padding: 0.8rem 1rem;
-      border-radius: 18px;
-      border-bottom-left-radius: 5px;
-      color: #666;
-      font-style: italic;
-    }
-    
-    .typing-indicator span {
-      animation: typing 1.4s infinite;
-    }
-    
-    .typing-indicator span:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-    
-    .typing-indicator span:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-    
-    @keyframes typing {
-      0%, 60%, 100% { opacity: 0.3; }
-      30% { opacity: 1; }
-    }
-    
-    .suggestions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      padding: 0 1rem 1rem;
-      background-color: white;
-    }
-    
-    .suggestion-btn {
-      background-color: var(--light-color);
-      border: 1px solid #ddd;
-      border-radius: 20px;
-      padding: 0.5rem 1rem;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    
-    .suggestion-btn:hover {
-      background-color: var(--secondary-color);
-      color: white;
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-      .navbar {
-        padding: 1rem;
-      }
-      
-      .title {
-        font-size: 1.5rem;
-      }
-      
-      .chat-messages {
-        height: 350px;
-      }
-      
-      .message {
-        max-width: 90%;
-      }
+    .input-area button:hover {
+      background: #357abf;
     }
   </style>
 </head>
 <body>
-  <header class="navbar">
-    <div style="display: flex; align-items: center;">
-      <img src="css/img/4.png" alt="Logo Encuéntrame" class="logo">
-      <h1 class="title">Encuentrame</h1>
-    </div>
-    <nav class="menu">
-      <button class="menu-btn">☰</button>
-      <ul class="menu-links">
-        <li><a href="index.html">Inicio</a></li>
-        <li><a href="perfil.html">Mi Perfil</a></li>
-        <li><a href="agregar.html">Agregar Mascota</a></li>
-        <li><a href="filtrar.html">Filtrar Mascotas</a></li>
-        <li><a href="chatbot.html">ChatBot IA</a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <main class="contenido">
-    <h2>Asistente Inteligente</h2>
-    <p>Escríbenos tus dudas o cuéntanos qué mascota perdiste y te ayudaremos.</p>
-    
-    <div class="chatbot-container">
-      <div class="chat-header">
-        <h3>Asistente Encuéntrame</h3>
-      </div>
-      
+  <div class="container">
+    <h1>ChatBot IA - Encuentrame</h1>
+    <div class="chat-container">
       <div class="chat-messages" id="chatMessages">
-        <div class="message bot-message">
-          ¡Hola! Soy tu asistente de Encuéntrame. ¿En qué puedo ayudarte hoy? Puedes contarme sobre una mascota perdida o hacerme cualquier pregunta relacionada.
-        </div>
+        <div class="message bot-message">¡Hola! Soy tu asistente virtual de Encuentrame. ¿En qué puedo ayudarte hoy?</div>
       </div>
-      
-      <div class="suggestions">
-        <button class="suggestion-btn" data-question="Perdí mi mascota, ¿qué debo hacer?">Perdí mi mascota, ¿qué debo hacer?</button>
-        <button class="suggestion-btn" data-question="Encontré una mascota perdida">Encontré una mascota perdida</button>
-        <button class="suggestion-btn" data-question="¿Cómo registro una mascota perdida?">¿Cómo registro una mascota perdida?</button>
-        <button class="suggestion-btn" data-question="Consejos para prevenir que se pierda una mascota">Consejos para prevenir que se pierda una mascota</button>
-      </div>
-      
-      <div class="chat-input-container">
-        <input type="text" class="chat-input" id="chatInput" placeholder="Escribe tu mensaje aquí...">
-        <button class="send-btn" id="sendBtn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
+      <div class="input-area">
+        <input type="text" id="userInput" placeholder="Escribe tu mensaje..." />
+        <button onclick="sendMessage()">Enviar</button>
       </div>
     </div>
-  </main>
-</div>
-  </main>
+  </div>
 
-    <script>
-  // --- Código de JavaScript Modificado para Gemini ---
-document.querySelector('.menu-btn')?.addEventListener('click', () => {
-    document.querySelector('.menu-links')?.classList.toggle('show');
-});
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById('userInput');
+      const message = input.value.trim();
+      if (!message) return;
 
-// Referencias a elementos del DOM
-const chatMessages = document.getElementById('chatMessages');
-const chatInput = document.getElementById('chatInput');
-const sendBtn = document.getElementById('sendBtn');
-const suggestionBtns = document.querySelectorAll('.suggestion-btn');
-const typingIndicator = document.createElement('div');
+      // Mostrar mensaje del usuario
+      addMessage(message, 'user');
+      input.value = '';
 
-// Configuración del Indicador de Escritura
-typingIndicator.className = 'typing-indicator';
-typingIndicator.innerHTML = 'El asistente está escribiendo<span>.</span><span>.</span><span>.</span>';
-
-// ------------------------------------------------------------------
-// 1. FUNCIONES BÁSICAS DE CHAT
-// ------------------------------------------------------------------
-
-/**
- * Función para añadir un mensaje al contenedor del chat
- * @param {string} text - Contenido del mensaje.
- * @param {boolean} isUser - true si es mensaje del usuario, false para la IA.
- */
-function addMessage(text, isUser = false) {
-    const messageDiv = document.createElement('div');
-    // Usamos 'user-message' y 'bot-message' que ya están en tus estilos
-    messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-    messageDiv.textContent = text;
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll automático
-}
-
-function showTypingIndicator() {
-    chatMessages.appendChild(typingIndicator);
-    typingIndicator.style.display = 'flex'; // Usamos flex para centrar los puntos (según tus estilos CSS)
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function hideTypingIndicator() {
-    typingIndicator.style.display = 'none';
-    if (typingIndicator.parentNode === chatMessages) {
-        chatMessages.removeChild(typingIndicator);
-    }
-}
-
-// ------------------------------------------------------------------
-// 2. INTEGRACIÓN CON API DE GEMINI
-// ------------------------------------------------------------------
-
-/**
- * Función que llama a la API de Gemini que creaste en server.js
- * @param {string} mensajeUsuario - Mensaje escrito por el usuario.
- */
-async function getGeminiResponse(mensajeUsuario) {
-    try {
-        // Llama al endpoint POST /api/chatbot
+      // Enviar al backend
+      try {
         const response = await fetch('/api/chatbot', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            // El cuerpo debe coincidir con req.body en server.js
-            body: JSON.stringify({ mensaje: mensajeUsuario }),
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ mensaje: message })
         });
 
-        if (!response.ok) {
-            // Si el servidor Node.js tuvo un error (ej. error 500), lo muestra
-            const errorData = await response.json();
-            console.error("Error en la respuesta de la API:", errorData);
-            return "Lo siento, el servidor tuvo un problema. Código: " + response.status;
-        }
-
         const data = await response.json();
-        return data.respuesta; // Retorna la respuesta de Gemini
-        
-    } catch (error) {
-        // Error de red (ej. servidor Node.js apagado)
-        console.error('Error al enviar el mensaje:', error);
-        return "Lo siento, no pude contactar al servidor. ¿El servidor Node.js está activo?";
+        if (data.respuesta) {
+          addMessage(data.respuesta, 'bot');
+        } else {
+          addMessage('Lo siento, no pude procesar tu mensaje.', 'bot');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        addMessage('Hubo un problema al conectar con el servidor.', 'bot');
+      }
     }
-}
 
-// ------------------------------------------------------------------
-// 3. MANEJO DE EVENTOS
-// ------------------------------------------------------------------
-
-/**
- * Función principal para manejar el envío de mensajes (por botón o Enter)
- */
-async function handleSendMessage(message) {
-    const messageToSend = message.trim();
-    if (!messageToSend) return;
-
-    // 1. Mostrar el mensaje del usuario
-    addMessage(messageToSend, true);
-    chatInput.value = ''; // Limpiar input
-
-    // 2. Mostrar indicador de escritura
-    showTypingIndicator();
-
-    // 3. Llamar a la API de Gemini
-    const botResponse = await getGeminiResponse(messageToSend);
-
-    // 4. Ocultar indicador y mostrar la respuesta
-    hideTypingIndicator();
-    addMessage(botResponse);
-}
-
-// Event Listeners
-
-// 1. Botón de Enviar
-sendBtn.addEventListener('click', () => {
-    handleSendMessage(chatInput.value);
-});
-
-// 2. Tecla Enter en el input
-chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault(); // Evita el envío de formulario tradicional
-        handleSendMessage(chatInput.value);
+    function addMessage(text, sender) {
+      const messagesDiv = document.getElementById('chatMessages');
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message', sender + '-message');
+      messageDiv.textContent = text;
+      messagesDiv.appendChild(messageDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
-});
 
-// 3. Botones de Sugerencia
-suggestionBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        const question = btn.getAttribute('data-question');
-        handleSendMessage(question);
+    // Permitir enviar con Enter
+    document.getElementById('userInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
     });
-});
-</script>
+  </script>
 </body>
 </html>
