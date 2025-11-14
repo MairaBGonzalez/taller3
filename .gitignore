@@ -1,1 +1,7 @@
-/.env
+node_modules/
+.env
+.env.local
+.DS_Store
+npm-debug.log
+dist/
+/.vscode//.env
