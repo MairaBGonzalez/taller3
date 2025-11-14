@@ -105,16 +105,31 @@
 
       // Enviar al backend
       try {
-        const response = await fetch('/api/chatbot', {
+        // Si la página no está siendo servida desde el puerto 3000, usar el backend en http://localhost:3000
+        const base = (window.location && window.location.port === '3000') ? window.location.origin : 'http://localhost:3000';
+        const response = await fetch(base + '/api/chatbot', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ mensaje: message })
         });
+        if (!response.ok) {
+          const txt = await response.text().catch(() => '');
+          addMessage(`Error del servidor: ${response.status} ${txt}`, 'bot');
+          return;
+        }
 
-        const data = await response.json();
-        if (data.respuesta) {
+        let data;
+        try {
+          data = await response.json();
+        } catch (e) {
+          const txt = await response.text().catch(() => '');
+          addMessage(`Respuesta inválida del servidor: ${txt}`, 'bot');
+          return;
+        }
+
+        if (data && data.respuesta) {
           addMessage(data.respuesta, 'bot');
         } else {
           addMessage('Lo siento, no pude procesar tu mensaje.', 'bot');

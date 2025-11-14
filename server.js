@@ -10,8 +10,25 @@ const jwt = require('jsonwebtoken');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '10mb' })); // Para soportar imágenes grandes en Base64
+app.use(express.static('public')); // Servir archivos estáticos desde la carpeta public
+
+// Logging de peticiones: método, ruta y body (útil para depuración)
+app.use((req, res, next) => {
+  try {
+    const bodySnippet = req.body && Object.keys(req.body).length ? JSON.stringify(req.body).slice(0, 500) : '';
+    console.log(`➡️ ${new Date().toISOString()} ${req.method} ${req.url} ${bodySnippet}`);
+  } catch (e) {
+    console.log('➡️ Error al loguear request:', e.message);
+  }
+  next();
+});
+
+// Health check simple
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', ts: new Date().toISOString() });
+});
 
 // Conexión a MariaDB (usando los datos del profe)
 const pool = mariadb.createPool({
@@ -20,7 +37,16 @@ const pool = mariadb.createPool({
   user: process.env.DB_USER,     // Tu usuario asignado
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME, // Ej: encuentrame_db
-  connectionLimit: 5
+  connectionLimit: 5,
+  connectionTimeout: 5000
+});
+
+// Verificar conexión a base de datos sin bloquear el inicio del servidor
+pool.getConnection().then(conn => {
+  console.log('✅ Base de datos conectada');
+  conn.release();
+}).catch(err => {
+  console.warn('⚠️ Advertencia: No se pudo conectar a la BD:', err.message);
 });
 
 // =========================
@@ -148,16 +174,19 @@ Tu función es:
 
 // Ruta del chatbot
 app.post('/api/chatbot', async (req, res) => {
+  console.log('📨 POST /api/chatbot recibido');
   const { mensaje } = req.body;
   if (!mensaje) {
     return res.status(400).json({ error: "Falta el mensaje" });
   }
 
   try {
+    console.log('🔄 Llamando a getGeminiResponse con:', mensaje);
     const respuesta = await getGeminiResponse(mensaje);
+    console.log('✅ Respuesta obtenida, enviando al cliente');
     res.json({ respuesta });
   } catch (error) {
-    console.error("Error en /api/chatbot:", error);
+    console.error("❌ Error en /api/chatbot:", error);
     res.status(500).json({ error: "Error interno del servidor" });
   }
 });
@@ -338,7 +367,23 @@ app.get('/api/mascotas/usuario', authMiddleware, async (req, res) => {
 // 🚀 Iniciar servidor
 // =========================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+
+// Manejo global de errores no capturados
+process.on('uncaughtException', (err) => {
+  console.error('❌ Error no capturado:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Promesa rechazada no manejada:', reason);
+});
+
+const server = app.listen(PORT, () => {
+  console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
+}).on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Puerto ${PORT} ya está en uso. Intenta con otro puerto.`);
+  } else {
+    console.error('❌ Error del servidor:', err);
+  }
 });
 
